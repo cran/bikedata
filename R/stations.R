@@ -32,8 +32,9 @@ bike_stations <- function (bikedb, city)
 
     bikedb <- check_db_arg (bikedb)
 
-    db <- dplyr::src_sqlite (bikedb, create = FALSE)
-    st <- dplyr::collect (dplyr::tbl (db, 'stations'))
+    db <- RSQLite::dbConnect (RSQLite::SQLite(), bikedb, create = FALSE)
+    st <- tibble::as.tibble (RSQLite::dbReadTable (db, 'stations'))
+    RSQLite::dbDisconnect (db)
 
     if (!missing (city))
         st <- st [which (st$city %in% convert_city_names (city)), ]

@@ -10,12 +10,6 @@
 
 #include <boost/algorithm/string/replace.hpp>
 
-// https://github.com/RcppCore/Rcpp/issues/636
-void R_init_bikedata(DllInfo* info) {
-    R_registerRoutines(info, NULL, NULL, NULL, NULL);
-    R_useDynamicSymbols(info, TRUE);
-}
-
 //' strtokm
 //'
 //' A string delimiter function based on strtok
@@ -188,10 +182,13 @@ std::string convert_datetime_ch (std::string str)
     return str;
 }
 
-//' convert_datetime_la
+//' convert_datetime_nabsa
+//'
+//' North American Bike Share Association (LA and Philadelphia) have identical
+//' formats
 //'
 //' @noRd
-std::string convert_datetime_la (std::string str)
+std::string convert_datetime_nabsa (std::string str)
 {
     std::string mon = str_token (&str, "/");
     if (mon.length () == 1)

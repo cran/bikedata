@@ -14,7 +14,7 @@
 #pragma once
 
 #include <unordered_set>
-#include "sqlite3/sqlite3.h"
+#include "vendor/sqlite3/sqlite3.h"
 
 // NOTE: Return values are only used for LA
 
@@ -31,9 +31,10 @@ unsigned read_one_line_dc (sqlite3_stmt * stmt, char * line,
 std::string convert_dc_stn_name (std::string &station_name, bool id,
         std::map <std::string, std::string> &stn_map);
 unsigned read_one_line_london (sqlite3_stmt * stmt, char * line);
-std::string add_0_to_la_time (std::string time);
-unsigned read_one_line_la (sqlite3_stmt * stmt, char * line,
-        std::map <std::string, std::string> * stationqry);
+std::string add_0_to_time (std::string time);
+unsigned read_one_line_nabsa (sqlite3_stmt * stmt, char * line,
+        std::map <std::string, std::string> * stationqry,
+        std::string city);
 
 
 //' read_one_line_nyc
@@ -213,7 +214,7 @@ unsigned read_one_line_boston (sqlite3_stmt * stmt, char * line,
 //' read_one_line_chicago
 //'
 //' @param stmt An sqlit3 statement to be assembled by reading the line of data
-//' @param line Line of data read from citibike file
+//' @param line Line of data read from divvy bike file
 //'
 //' @noRd
 unsigned read_one_line_chicago (sqlite3_stmt * stmt, char * line,
@@ -276,7 +277,7 @@ unsigned read_one_line_chicago (sqlite3_stmt * stmt, char * line,
 //' read_one_line_dc
 //'
 //' @param stmt An sqlit3 statement to be assembled by reading the line of data
-//' @param line Line of data read from citibike file
+//' @param line Line of data read from capital bikeshare file
 //' @param dur_ms True if duration is single number (in ms); otherwise duration
 //' has to be explicitly parsed
 //' @param id True if file contains station ID columns
@@ -433,7 +434,7 @@ std::string convert_dc_stn_name (std::string &station_name, bool id,
 //' read_one_line_london
 //'
 //' @param stmt An sqlit3 statement to be assembled by reading the line of data
-//' @param line Line of data read from citibike file
+//' @param line Line of data read from Santander cycles file
 //'
 //' @noRd
 unsigned read_one_line_london (sqlite3_stmt * stmt, char * line)
@@ -480,17 +481,17 @@ unsigned read_one_line_london (sqlite3_stmt * stmt, char * line)
 }
 
 
-//' add_0_to_la_time
+//' add_0_to_time
 //'
-//' The hours part of LA times are single digit for HH < 10. SQLite requires
-//' strict HH, so this function inserts an extra zero where needed.
+//' The hours part of LA and Philly times are single digit for HH < 10. SQLite
+//' requires ' strict HH, so this function inserts an extra zero where needed.
 //'
-//' @param time A datetime column from the LA data
+//' @param time A datetime column from the LA or Philly data
 //'
 //' @return datetime with two-digit hour field
 //'
 //' @noRd
-std::string add_0_to_la_time (std::string time)
+std::string add_0_to_time (std::string time)
 {
     unsigned gap_pos = time.find (" ");
     unsigned time_div_pos = time.find (":");
@@ -502,18 +503,22 @@ std::string add_0_to_la_time (std::string time)
 }
 
 
-//' read_one_line_la
+//' read_one_line_nabsa
+//'
+//' North American Bike Share Association open data standard (LA and
+//' Philadelpia) have identical file formats
 //'
 //' @param stmt An sqlit3 statement to be assembled by reading the line of data
-//' @param line Line of data read from citibike file
+//' @param line Line of data read from LA metro or Philadelphia Indego file
 //' @param stationqry Sqlite3 query for station data table to be subsequently
 //'        passed to 'import_to_station_table()'
 //'
 //' @noRd
-unsigned read_one_line_la (sqlite3_stmt * stmt, char * line,
-        std::map <std::string, std::string> * stationqry)
+unsigned read_one_line_nabsa (sqlite3_stmt * stmt, char * line,
+        std::map <std::string, std::string> * stationqry, std::string city)
 {
     std::string in_line = line;
+    std::string in_line2 = line; // TODO: Delete that!
     boost::replace_all (in_line, "\\N"," "); 
     // replace_all only works with the following two lines, NOT with a single
     // attempt to replace all ",,"!
@@ -528,42 +533,44 @@ unsigned read_one_line_la (sqlite3_stmt * stmt, char * line,
 
     std::string trip_duration = std::strtok (NULL, delim);
     std::string start_date = std::strtok (NULL, delim);
-    start_date = add_0_to_la_time (start_date);
-    start_date = convert_datetime_la (start_date);
+    start_date = add_0_to_time (start_date);
+    start_date = convert_datetime_nabsa (start_date);
     std::string end_date = std::strtok (NULL, delim);
-    end_date = add_0_to_la_time (end_date);
-    end_date = convert_datetime_la (end_date);
+    end_date = add_0_to_time (end_date);
+    end_date = convert_datetime_nabsa (end_date);
     std::string start_station_id = std::strtok (NULL, delim);
-    if (start_station_id == " ")
+    if (start_station_id == " " || start_station_id == "#N/A")
         ret = 1;
-    start_station_id = "la" + start_station_id;
+    start_station_id = city + start_station_id;
     std::string start_station_lat = std::strtok (NULL, delim);
     std::string start_station_lon = std::strtok (NULL, delim);
     // lat and lons are sometimes empty, which is useless 
-    if (stationqry->count(start_station_id) == 0 &&
-            start_station_lat != " " && start_station_lon != " ") 
+    if (stationqry->count(start_station_id) == 0 && ret == 0 &&
+            start_station_lat != " " && start_station_lon != " " &&
+            start_station_lat != "0" && start_station_lon != "0")
     {
         std::string start_station_name = "";
-        (*stationqry)[start_station_id] = "(\'la\',\'" + 
-            start_station_id + "\',\'\'," + // no start_station_name
+        (*stationqry)[start_station_id] = "(\'" + city + "\',\'" +
+            start_station_id + "\',\'\'," + 
             start_station_lat + delim + start_station_lon + ")";
     }
 
     std::string end_station_id = std::strtok (NULL, delim);
-    if (end_station_id == " ")
+    if (end_station_id == " " || end_station_id == "#N/A")
         ret = 1;
-    end_station_id = "la" + end_station_id;
+    end_station_id = city + end_station_id;
     std::string end_station_lat = std::strtok (NULL, delim);
     std::string end_station_lon = std::strtok (NULL, delim);
-    if (stationqry->count(end_station_id) == 0 &&
-            end_station_lat != " " && end_station_lon != " ")
+    if (stationqry->count(end_station_id) == 0 && ret == 0 &&
+            end_station_lat != " " && end_station_lon != " " &&
+            end_station_lat != "0" && end_station_lon != "0")
     {
         std::string end_station_name = "";
-        (*stationqry)[end_station_id] = "(\'la\',\'" + 
-            end_station_id + "\',\'\'," +
+        (*stationqry)[end_station_id] = "(\'" + city + "\',\'" +
+            end_station_id + "\',\'\'," + 
             end_station_lat + "," + end_station_lon + ")";
     }
-    // LA only has duration of membership as (30 = monthly, etc)
+    // NABSA systems only have duration of membership as (30 = monthly, etc)
     std::string user_type = std::strtok (NULL, delim);
     if (user_type == "")
         user_type = "0";

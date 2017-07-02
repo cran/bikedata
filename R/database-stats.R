@@ -61,8 +61,9 @@ bike_cities_in_db <- function (bikedb)
 #' @noRd
 get_new_datafiles <- function (bikedb, flist_zip)
 {
-    db <- dplyr::src_sqlite (bikedb, create = FALSE)
-    old_files <- dplyr::collect (dplyr::tbl (db, 'datafiles'))$name
+    db <- RSQLite::dbConnect (RSQLite::SQLite(), bikedb, create = FALSE)
+    old_files <- RSQLite::dbReadTable (db, 'datafiles')$name
+    RSQLite::dbDisconnect (db)
     flist_zip [which (!basename (flist_zip) %in% old_files)]
 }
 
@@ -278,13 +279,11 @@ bike_summary_stats <- function (bikedb)
     num_trips <- bike_db_totals (bikedb, TRUE)
     num_stations <- bike_db_totals (bikedb, FALSE)
     dates <- rbind (c (NULL, NULL), bike_datelimits (bikedb)) # so [,1] works
-    rnames <- cities
 
     latest_files <- bike_latest_files (bikedb)
     if (length (cities) > 1)
     {
         latest <- NULL # latest_files aren't necessarily in db order
-        rnames <- c ('all', cities)
         for (ci in cities)
         {
             num_trips <- c (num_trips, bike_db_totals (bikedb, TRUE, city = ci))
@@ -297,10 +296,10 @@ bike_summary_stats <- function (bikedb)
         latest_files <- c (NA, latest)
     }
 
-    res <- data.frame (num_trips = num_trips, num_stations = num_stations,
+    res <- data.frame (city = as.character (c ('total', cities)),
+                       num_trips = num_trips, num_stations = num_stations,
                        first_trip = dates [, 1], last_trip = dates [, 2],
                        latest_files = latest_files)
-    rownames (res) <- rnames
     return (tibble::as_tibble (res))
 }
 
@@ -420,7 +419,7 @@ bike_daily_trips <- function (bikedb, city, station, member, birth_year, gender,
         daily_stns <- daily_stns [which (trips$date %in% all_days)]
         daily_stns <- daily_stns / mean (daily_stns)
         trips$numtrips <- trips$numtrips * daily_stns
-        
+
         # Then round to 3 places
         trips$numtrips <- round (trips$numtrips * daily_stns, digits = 3)
     }
@@ -432,7 +431,7 @@ bike_daily_trips <- function (bikedb, city, station, member, birth_year, gender,
 
 #' Static summary of which systems provide demographic data
 #'
-#' @return A \code{data.frame} detailing the kinds of demographc data provided
+#' @return A \code{data.frame} detailing the kinds of demographic data provided
 #' by the different systems
 #'
 #' @export
@@ -441,13 +440,15 @@ bike_daily_trips <- function (bikedb, city, station, member, birth_year, gender,
 #' bike_demographic_data ()
 bike_demographic_data <- function ()
 {
-    dat <- data.frame (city = c ('bo', 'ch', 'dc', 'la', 'lo', 'ny'),
+    dat <- data.frame (city = c ('bo', 'ch', 'dc', 'la', 'lo', 'ny', 'ph'),
                        city_name = c ('Boston', 'Chicago', 'Washington DC',
-                                      'Los Angeles', 'London', 'New York'),
+                                      'Los Angeles', 'London', 'New York',
+                                      'Philadelphia'),
                        bike_system = c ('Hubway', 'Divvy', 'CapitalBikeShare',
-                                        'Metro', 'Santander', 'Citibike'),
+                                        'Metro', 'Santander', 'Citibike',
+                                        'Indego'),
                        demographic_data = c (TRUE, TRUE, FALSE, FALSE,
-                                             FALSE, TRUE))
+                                             FALSE, TRUE, FALSE))
 
     return (dat)
 }

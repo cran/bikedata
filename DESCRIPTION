@@ -1,21 +1,21 @@
 Package: bikedata
 Title: Download and Aggregate Data from Public Hire Bicycle Systems
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: c(
     person("Mark", "Padgham", email = "mark.padgham@email.com", role = c("aut", "cre")),
     person("Richard", "Ellison", role = "aut"),
     person(family = "SQLite Consortium", role = "ctb", 
         comment = "Authors of included SQLite code"))
 Description: Download and aggregate data from all public hire bicycle systems
-    which provide open data, currently including Santander Cycles in London,
-    U.K., and from the U.S.A., citibike in New York City NY, Divvy in Chicago
-    IL, Capital Bikeshare in Washington DC, Hubway in Boston MA, and Metro in
-    Los Angeles LA.
+    which provide open data, currently including 'Santander' Cycles in London,
+    U.K., and from the U.S.A., 'citibike' in New York City NY, 'Divvy' in
+    Chicago IL, 'Capital Bikeshare' in Washington DC, 'Hubway' in Boston MA, and
+    'Metro' in Los Angeles LA.
 License: GPL-3
 Depends: R (>= 3.0)
-Imports: dplyr, httr, lubridate, methods, Rcpp, RSQLite, reshape2,
+Imports: httr, lubridate, magrittr, methods, Rcpp, RSQLite, reshape2,
         tibble, xml2
-Suggests: knitr, rmarkdown, roxygen2, testthat
+Suggests: dbplyr, knitr, rmarkdown, roxygen2, testthat, covr
 LinkingTo: BH, Rcpp
 VignetteBuilder: knitr
 SystemRequirements: C++11
@@ -25,10 +25,10 @@ BugReports: https://github.com/mpadge/bikedata/issues
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
-Packaged: 2017-05-31 08:10:18 UTC; markus
+Packaged: 2017-07-02 10:13:57 UTC; markus
 Author: Mark Padgham [aut, cre],
   Richard Ellison [aut],
   SQLite Consortium [ctb] (Authors of included SQLite code)
 Maintainer: Mark Padgham <mark.padgham@email.com>
 Repository: CRAN
-Date/Publication: 2017-05-31 19:32:49 UTC
+Date/Publication: 2017-07-02 14:13:48 UTC
