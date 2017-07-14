@@ -1,26 +1,33 @@
-## ----install, eval = FALSE-----------------------------------------------
+## ----install1, eval = FALSE----------------------------------------------
 #  install.packages ('bikedata')
+
+## ----install2, eval = FALSE----------------------------------------------
+#  devtools::install_github ("mpadge/bikedata")
 
 ## ---- eval = TRUE--------------------------------------------------------
 library (bikedata)
 
+## ---- eval = FALSE, echo = FALSE, message = FALSE------------------------
+#  devtools::load_all ()
+
 ## ----store-la-data, eval = TRUE------------------------------------------
-store_bikedata (city = 'la', bikedb = 'bikedb', quiet = TRUE)
+bikedb <- file.path (tempdir (), "bikedb.sqlite") # or whatever
+store_bikedata (city = 'la', bikedb = bikedb, quiet = TRUE)
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  store_bikedata (bikedb = 'bikedb', city = 'divvy', dates = 2016, quiet = TRUE)
+#  store_bikedata (bikedb = bikedb, city = 'divvy', dates = 2016, quiet = TRUE)
 
 ## ---- echo = FALSE-------------------------------------------------------
 3595383
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_db_totals (bikedb = 'bikedb')
+#  bike_db_totals (bikedb = bikedb)
 
 ## ---- echo = FALSE-------------------------------------------------------
 3726719
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  tm <- bike_tripmat (bikedb = 'bikedb', city = 'la')
+#  tm <- bike_tripmat (bikedb = bikedb, city = 'la')
 #  class (tm); dim (tm); sum (tm)
 
 ## ------------------------------------------------------------------------
@@ -30,7 +37,7 @@ x <- "matrix"; y <- c (66, 66); z <- 131336
 x; y; z
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_tripmat (bikedb = 'bikedb', city = 'la', long = TRUE)
+#  bike_tripmat (bikedb = bikedb, city = 'la', long = TRUE)
 
 ## ---- echo = FALSE-------------------------------------------------------
 n <- 4356
@@ -44,7 +51,7 @@ tm <- tibble::tibble (start_station_id = ss,
 tm
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_stations (bikedb = 'bikedb')
+#  bike_stations (bikedb = bikedb)
 
 ## ---- echo = FALSE-------------------------------------------------------
 n <- 662
@@ -61,7 +68,7 @@ stations1 <- tibble::tibble (id = id, city = city, stn_id = ids,
 stations1
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  st <- bike_stations (bikedb = 'bikedb', city = 'ch')
+#  st <- bike_stations (bikedb = bikedb, city = 'ch')
 
 ## ---- eval = FALSE-------------------------------------------------------
 #  bike_write_test_data ()
@@ -87,27 +94,27 @@ stations1
 #  dl_bikedata (city = 'dc', dates = '2016.03-2016.05')
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  ntrips <- store_bikedata (bikedb = 'bikedb', city = 'ny',
+#  ntrips <- store_bikedata (bikedb = bikedb, city = 'ny',
 #                            dates = '2014 aug - 2015 Dec')
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  ntrips <- store_bikedata (bikedb = 'bikedb', city = 'ny',
+#  ntrips <- store_bikedata (bikedb = bikedb, city = 'ny',
 #                            data_dir = '/data/stored/here')
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  dim (bike_tripmat (bikedb = 'bikedb', city = 'ch'))
+#  dim (bike_tripmat (bikedb = bikedb, city = 'ch'))
 
 ## ---- echo = FALSE-------------------------------------------------------
 c (581, 581)
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  dim (bike_stations (bikedb = 'bikedb', city = 'ch'))
+#  dim (bike_stations (bikedb = bikedb, city = 'ch'))
 
 ## ---- echo = FALSE-------------------------------------------------------
 c (596, 6)
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  args0 <- list (bikedb = 'bikedb', city = 'ny', args)
+#  args0 <- list (bikedb = bikedb, city = 'ny', args)
 #  args1 <- list (start_date = 16, end_time = 12, weekday = 1)
 #  tm <- do.call (bike_tripmat, c (args0, args1))
 
@@ -120,18 +127,18 @@ c (596, 6)
 bike_demographic_data ()
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  tm <- bike_tripmat (bikedb = 'bikedb', city = 'ny', start_date = 2016,
+#  tm <- bike_tripmat (bikedb = bikedb, city = 'ny', start_date = 2016,
 #          start_time = 9, end_time = 24, weekday = 2:6, gender = 'xx',
 #          birth_year = 1900:1950)
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_stations (bikedb = 'bikedb')
+#  bike_stations (bikedb = bikedb)
 
 ## ---- echo = FALSE-------------------------------------------------------
 stations1
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_stations (bikedb = 'bikedb', city = 'ch')
+#  bike_stations (bikedb = bikedb, city = 'ch')
 
 ## ---- echo = FALSE-------------------------------------------------------
 n <- 596
@@ -169,61 +176,61 @@ tbl <- tibble::tibble (num_trips = ntr, num_stations = nst,
 tbl
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_db_totals (bikedb = 'bikedb')
+#  bike_db_totals (bikedb = bikedb)
 
 ## ---- echo = FALSE-------------------------------------------------------
 3726719
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_db_totals (bikedb = 'bikedb', city = "ch")
+#  bike_db_totals (bikedb = bikedb, city = "ch")
 
 ## ---- echo = FALSE-------------------------------------------------------
 3595383
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_db_totals (bikedb = 'bikedb', city = "la")
+#  bike_db_totals (bikedb = bikedb, city = "la")
 
 ## ---- echo = FALSE-------------------------------------------------------
 131336
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_db_totals (bikedb = 'bikedb', trips = FALSE)
+#  bike_db_totals (bikedb = bikedb, trips = FALSE)
 
 ## ---- echo = FALSE-------------------------------------------------------
 662
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_db_totals (bikedb = 'bikedb', trips = FALSE, city = "ch")
+#  bike_db_totals (bikedb = bikedb, trips = FALSE, city = "ch")
 
 ## ---- echo = FALSE-------------------------------------------------------
 596
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_db_totals (bikedb = 'bikedb', trips = FALSE, city = "la")
+#  bike_db_totals (bikedb = bikedb, trips = FALSE, city = "la")
 
 ## ---- echo = FALSE-------------------------------------------------------
 66
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_datelimits (bikedb = 'bikedb')
+#  bike_datelimits (bikedb = bikedb)
 
 ## ---- echo = FALSE-------------------------------------------------------
 c ('first' = "2016-01-01 00:07:00", 'last' = "2017-03-31 23:45:00")
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_datelimits (bikedb = 'bikedb', city = 'ch')
+#  bike_datelimits (bikedb = bikedb, city = 'ch')
 
 ## ------------------------------------------------------------------------
 c ('first' = "2016-01-01 00:07:00", 'last' = "2016-12-31 23:57:52")
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_latest_files (bikedb = 'bikedb')
+#  bike_latest_files (bikedb = bikedb)
 
 ## ------------------------------------------------------------------------
 c ('la' = TRUE, 'ch' = TRUE)
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_daily_trips (bikedb = 'bikedb', city = 'ch')
+#  bike_daily_trips (bikedb = bikedb, city = 'ch')
 
 ## ---- echo = FALSE-------------------------------------------------------
 n <- 366
@@ -235,7 +242,7 @@ nt <- c (935, 1421, 1399, 3833, 4189, 4608, 5028, 3425, 1733, 993,
 tibble::tibble (date = dates, numtrips = nt)
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_daily_trips (bikedb = 'bikedb', city = 'ch', standardise = TRUE)
+#  bike_daily_trips (bikedb = bikedb, city = 'ch', standardise = TRUE)
 
 ## ---- echo = FALSE-------------------------------------------------------
 nt <- c (2468.925, 2481.939, 2200.766, 5509.787, 5884.207, 6298.229, 6630.111,
@@ -306,15 +313,15 @@ data.frame (stn_id = c ('ch456', 'ch101', 'ch109', 'ch21', 'ch80', 'ch346'),
                       'Aberdeen St & Monroe St', 'Ada St & Washington Blvd'))
 
 ## ----plot-la-out, echo = TRUE, eval = FALSE------------------------------
-#  stns <- bike_stations (bikedb = 'bikedb', city = 'la')
-#  ntrips <- bike_tripmat (bikedb = 'bikedb', city = 'la', long = TRUE)
+#  stns <- bike_stations (bikedb = bikedb, city = 'la')
+#  ntrips <- bike_tripmat (bikedb = bikedb, city = 'la', long = TRUE)
 #  x1 <- stns$longitude [match (ntrips$start_station_id, stns$stn_id)]
 #  y1 <- stns$latitude [match (ntrips$start_station_id, stns$stn_id)]
 #  x2 <- stns$longitude [match (ntrips$end_station_id, stns$stn_id)]
 #  y2 <- stns$latitude [match (ntrips$end_station_id, stns$stn_id)]
 #  # Set plot area to central region of bike system
-#  xlims <- c (-118.27, max (stns$longitude))
-#  ylims <- c (34.02, max (stns$latitude))
+#  xlims <- c (-118.27, -118.23)
+#  ylims <- c (34.02, 34.07)
 #  plot (stns$longitude, stns$latitude, xlim = xlims, ylim = ylims)
 #  cols <- rainbow (100)
 #  nt <- ceiling (ntrips$numtrips * 100 / max (ntrips$numtrips))
@@ -325,15 +332,15 @@ data.frame (stn_id = c ('ch456', 'ch101', 'ch109', 'ch21', 'ch80', 'ch346'),
 ## ----plot-la, echo = FALSE, eval = TRUE----------------------------------
 # For some reason the R CMD build version loses one longitude in stns which
 # mucks up the plot
-stns <- bike_stations (bikedb = 'bikedb', city = 'la')
-ntrips <- bike_tripmat (bikedb = 'bikedb', city = 'la', long = TRUE)
+stns <- bike_stations (bikedb = bikedb, city = 'la')
+ntrips <- bike_tripmat (bikedb = bikedb, city = 'la', long = TRUE)
 x1 <- stns$longitude [match (ntrips$start_station_id, stns$stn_id)]
 y1 <- stns$latitude [match (ntrips$start_station_id, stns$stn_id)]
 x2 <- stns$longitude [match (ntrips$end_station_id, stns$stn_id)]
 y2 <- stns$latitude [match (ntrips$end_station_id, stns$stn_id)]
 # Set plot area to central region of bike system
-xlims <- c (-118.27, max (stns$longitude [stns$longitude < 0]))
-ylims <- c (34.02, max (stns$latitude))
+xlims <- c (-118.27, -118.23)
+ylims <- c (34.02, 34.07)
 plot (stns$longitude, stns$latitude, xlim = xlims, ylim = ylims)
 cols <- rainbow (100)
 nt <- ceiling (ntrips$numtrips * 100 / max (ntrips$numtrips))
@@ -343,19 +350,21 @@ for (i in seq (x1))
 
 ## ----get-la-highways, eval = FALSE---------------------------------------
 #  library (magrittr)
-#  xlims_la <- range (stns$longitude)
-#  ylims_la <- range (stns$latitude)
+#  xlims_la <- range (stns$longitude, na.rm = TRUE)
+#  ylims_la <- range (stns$latitude, na.rm = TRUE)
 #  # expand those limits slightly
 #  ex <- 0.1
 #  xlims_la <- xlims_la + c (-ex, ex) * diff (xlims_la)
 #  ylims_la <- ylims_la + c (-ex, ex) * diff (ylims_la)
 #  bbox <- c (xlims_la [1], ylims_la [1], xlims_la [2], ylims_la [2])
+#  bbox <- c (xlims [1], ylims [1], xlims [2], ylims [2])
 #  # Then the actual osmdata query to extract all OpenStreetMap highways
 #  highways <- osmdata::opq (bbox = bbox) %>%
-#      osmdata::add_feature (key = 'highway') %>% osmdata::osmdata_sp ()
+#      osmdata::add_osm_feature (key = 'highway') %>%
+#      osmdata::osmdata_sp (quiet = FALSE)
 
 ## ----convert-stns-to-spdf, eval = FALSE----------------------------------
-#  stns_tbl <- bike_stations (bikedb = 'bikedb')
+#  stns_tbl <- bike_stations (bikedb = bikedb)
 #  stns <- sp::SpatialPointsDataFrame (coords = stns_tbl[,c('longitude','latitude')],
 #                                      proj4string = sp::CRS("+init=epsg:4326"),
 #                                      data = stns_tbl)
@@ -372,7 +381,7 @@ for (i in seq (x1))
 #  ntrips$end_station_id <- endid
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_usage <- sum_network_links (la_net, data.frame (ntrips))
+#  bike_usage <- stplanr::sum_network_links (la_net, data.frame (ntrips))
 
 ## ----plot-tmat, eval = FALSE---------------------------------------------
 #  tmap::tm_shape (bike_usage, xlim = xlims, ylim = ylims, is.master=TRUE) +
