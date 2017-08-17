@@ -13,8 +13,6 @@
 #' downloaded and stored only for these dates specified as vector of YYYYMM
 #' values.
 #' @param quiet If FALSE, progress is displayed on screen
-#' @param create_index If TRUE, creates an index on the start and end station
-#'          IDs and start and stop times.
 #'
 #' @return Number of trips added to database
 #'
@@ -50,6 +48,9 @@
 #' # dl_bikedata (city = 'la', data_dir = data_dir)
 #' bikedb <- file.path (data_dir, 'testdb')
 #' store_bikedata (data_dir = data_dir, bikedb = bikedb)
+#' # create database indexes for quicker access:
+#' index_bikedata_db (bikedb = bikedb)
+#'
 #' trips <- bike_tripmat (bikedb = bikedb, city = 'LA') # trip matrix
 #' stations <- bike_stations (bikedb = bikedb) # station data
 #' 
@@ -58,8 +59,7 @@
 #' # don't forget to remove real data!
 #' # file.remove (list.files (data_dir, pattern = '.zip'))
 #' }
-store_bikedata <- function (bikedb, city, data_dir, create_index = TRUE,
-                            dates = NULL, quiet = FALSE)
+store_bikedata <- function (bikedb, city, data_dir, dates = NULL, quiet = FALSE)
 {
     if (missing (city) & missing (data_dir))
     {
@@ -97,7 +97,7 @@ store_bikedata <- function (bikedb, city, data_dir, create_index = TRUE,
     er_idx <- file.exists (bikedb) + 1 # = (1, 2) if (!exists, exists)
     if (!quiet)
         message (c ('Creating', 'Adding data to') [er_idx], ' sqlite3 database')
-    if (!file.exists (bikedb))
+    (!file.exists (bikedb))
     {
         chk <- rcpp_create_sqlite3_db (bikedb)
         if (chk != 0)
@@ -178,23 +178,55 @@ store_bikedata <- function (bikedb, city, data_dir, create_index = TRUE,
         } else
             message ('All data already in database; no new data added')
 
-    if (ntrips > 0)
-    {
-        rcpp_create_city_index (bikedb, er_idx - 1)
-        if (create_index) # additional indexes for stations and times
-        {
-            if (!quiet)
-                message (c ('Creating', 'Re-creating') [er_idx], ' indexes')
-            rcpp_create_db_indexes (bikedb,
-                                    tables = rep("trips", times = 4),
-                                    cols = c("start_station_id",
-                                             "end_station_id",
-                                             "start_time", "stop_time"),
-                                    indexes_exist (bikedb))
-        }
-    }
-
     return (ntrips)
+}
+
+#' Add indexes to database created with store_bikedata
+#'
+#' @param bikedb The SQLite3 database containing the bikedata.
+#'
+#' @export
+#' 
+#' @examples
+#' \dontrun{
+#' data_dir <- tempdir ()
+#' bike_write_test_data (data_dir = data_dir)
+#' # or download some real data!
+#' # dl_bikedata (city = 'la', data_dir = data_dir)
+#' bikedb <- file.path (data_dir, 'testdb')
+#' store_bikedata (data_dir = data_dir, bikedb = bikedb)
+#' # create database indexes for quicker access:
+#' index_bikedata_db (bikedb = bikedb)
+#'
+#' trips <- bike_tripmat (bikedb = bikedb, city = 'LA') # trip matrix
+#' stations <- bike_stations (bikedb = bikedb) # station data
+#' 
+#' bike_rm_test_data (data_dir = data_dir)
+#' bike_rm_db (bikedb)
+#' # don't forget to remove real data!
+#' # file.remove (list.files (data_dir, pattern = '.zip'))
+#' }
+index_bikedata_db <- function (bikedb)
+{
+    if (missing (bikedb))
+        stop ("bikedb must be provided in order to create indexes")
+
+    bikedb <- check_db_arg (bikedb)
+
+    db <- DBI::dbConnect (RSQLite::SQLite(), bikedb, create = FALSE)
+    idx_list <- DBI::dbGetQuery (db, "PRAGMA index_list (trips)")
+    DBI::dbDisconnect (db)
+
+    reindex <- 'idx_trips_city' %in% idx_list$name
+    chk <- rcpp_create_city_index (bikedb, reindex) # nolint
+
+    reindex <- (nrow (idx_list) > 2)
+    chk <- rcpp_create_db_indexes (bikedb,
+                                   tables = rep("trips", times = 4),
+                                   cols = c("start_station_id",
+                                            "end_station_id",
+                                            "start_time", "stop_time"),
+                                   reindex) # nolint
 }
 
 #' Remove SQLite3 database generated with 'store_bikedat()'
@@ -204,8 +236,7 @@ store_bikedata <- function (bikedb, city, data_dir, create_index = TRUE,
 #' function provides a convenient way to remove the database in such cases by
 #' simply passing the name.
 #'
-#' @param bikedb A string containing the path to the SQLite3 database.
-#' If no directory specified, it is presumed to be in \code{tempdir()}.
+#' @param bikedb The SQLite3 database containing the bikedata.
 #'
 #' @return TRUE if \code{bikedb} successfully removed; otherwise FALSE
 #'
@@ -278,15 +309,17 @@ get_bike_cities <- function (data_dir)
     names (cities)
 }
 
-#' Get list of data files for a particular city in specified directory 
+#' Get list of data files for a particular city in specified directory and not
+#' in database
 #'
 #' @param data_dir Directory containing data files
+#' @param bikedb name of bikedata database
 #' @param city One of (nyc, boston, chicago, dc, la, philly)
 #'
 #' @return Only those members of flist corresponding to nominated city
 #'
 #' @noRd
-get_flist_city <- function (data_dir, city)
+get_flist_city <- function (data_dir, bikedb, city)
 {
     city <- convert_city_names (city)
 
@@ -313,7 +346,13 @@ get_flist_city <- function (data_dir, city)
     if (length (index) > 0)
         ret <- paste0 (data_dir, '/', flist [index])
 
-    return (ret)
+    db <- DBI::dbConnect (RSQLite::SQLite(), bikedb, create = FALSE)
+    db_files <- DBI::dbGetQuery (db, "SELECT * FROM datafiles")
+    DBI::dbDisconnect (db)
+
+    db_files <- db_files$name [db_files$city == city]
+
+    return (ret [!ret %in% db_files])
 }
 
 #' Get list of files to be unzipped and added to database
@@ -338,7 +377,8 @@ get_flist_city <- function (data_dir, city)
 #' @noRd
 bike_unzip_files <- function (data_dir, bikedb, city)
 {
-    flist_zip <- get_flist_city (data_dir, city)
+    flist_zip <- get_flist_city (data_dir = data_dir, bikedb = bikedb,
+                                 city = city)
     existing_csv_files <- list.files (data_dir, pattern = '\\.csv$')
     flist_csv <- flist_rm <- NULL
 
@@ -399,7 +439,8 @@ bike_unzip_files <- function (data_dir, bikedb, city)
 #' @noRd
 bike_unzip_files_chicago <- function (data_dir, bikedb)
 {
-    flist_zip <- get_flist_city (data_dir, city = 'ch')
+    flist_zip <- get_flist_city (data_dir = data_dir, bikedb = bikedb,
+                                 city = 'ch')
     flist_zip <- get_new_datafiles (bikedb, flist_zip)
     existing_csv_files <- list.files (data_dir, pattern = "Divvy.*\\.csv")
     if (length (existing_csv_files) == 0)

@@ -17,6 +17,9 @@
 #' # dl_bikedata (city = 'la', data_dir = data_dir)
 #' bikedb <- file.path (data_dir, 'testdb')
 #' store_bikedata (data_dir = data_dir, bikedb = bikedb)
+#' # create database indexes for quicker access:
+#' index_bikedata_db (bikedb = bikedb)
+#'
 #' stations <- bike_stations (bikedb)
 #' head (stations)
 #' 
@@ -32,9 +35,9 @@ bike_stations <- function (bikedb, city)
 
     bikedb <- check_db_arg (bikedb)
 
-    db <- RSQLite::dbConnect (RSQLite::SQLite(), bikedb, create = FALSE)
-    st <- tibble::as.tibble (RSQLite::dbReadTable (db, 'stations'))
-    RSQLite::dbDisconnect (db)
+    db <- DBI::dbConnect (RSQLite::SQLite(), bikedb, create = FALSE)
+    st <- tibble::as.tibble (DBI::dbReadTable (db, 'stations'))
+    DBI::dbDisconnect (db)
 
     if (!missing (city))
         st <- st [which (st$city %in% convert_city_names (city)), ]

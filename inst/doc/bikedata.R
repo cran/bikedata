@@ -27,6 +27,9 @@ store_bikedata (city = 'la', bikedb = bikedb, quiet = TRUE)
 3726719
 
 ## ---- eval = FALSE-------------------------------------------------------
+#  index_bikedata_db (bikedb = bikedb)
+
+## ---- eval = FALSE-------------------------------------------------------
 #  tm <- bike_tripmat (bikedb = bikedb, city = 'la')
 #  class (tm); dim (tm); sum (tm)
 

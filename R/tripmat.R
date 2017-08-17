@@ -91,12 +91,12 @@ filter_bike_tripmat <- function (bikedb, ...)
 
     qry <- paste (qry, "ORDER BY s1.stn_id, s2.stn_id")
 
-    db <- RSQLite::dbConnect (RSQLite::SQLite(), bikedb, create = FALSE)
-    qryres <- RSQLite::dbSendQuery (db, qry)
-    RSQLite::dbBind(qryres, as.list(qryargs))
-    trips <- RSQLite::dbFetch(qryres)
-    RSQLite::dbClearResult(qryres)
-    RSQLite::dbDisconnect (db)
+    db <- DBI::dbConnect (RSQLite::SQLite(), bikedb, create = FALSE)
+    qryres <- DBI::dbSendQuery (db, qry)
+    DBI::dbBind(qryres, as.list(qryargs))
+    trips <- DBI::dbFetch(qryres)
+    DBI::dbClearResult(qryres)
+    DBI::dbDisconnect (db)
 
     return(trips)
 }
@@ -177,7 +177,11 @@ bike_transform_gender <- function (gender)
 {
     if (!(is.numeric (gender) | is.character (gender)))
         stop ('gender must be numeric or character')
-    if (is.character (gender))
+    if (is.numeric (gender) & (gender < 0 | gender > 2))
+    {
+        message ('gender only filtered for values of 0, 1, or 2')
+        gender <- NULL
+    } else if (is.character (gender))
     {
         gender <- tolower (substring (gender, 1, 1))
         if (gender == 'f')
@@ -241,6 +245,9 @@ bike_transform_gender <- function (gender)
 #' # dl_bikedata (city = 'la', data_dir = data_dir)
 #' bikedb <- file.path (data_dir, 'testdb')
 #' store_bikedata (data_dir = data_dir, bikedb = bikedb)
+#' # create database indexes for quicker access:
+#' index_bikedata_db (bikedb = bikedb)
+#'
 #' 
 #' tm <- bike_tripmat (bikedb = bikedb, city = 'ny') # full trip matrix
 #' tm <- bike_tripmat (bikedb = bikedb, city = 'ny',
@@ -309,7 +316,7 @@ bike_tripmat <- function (bikedb, city, start_date, end_date,
         x <- c (x, 'weekday' = list (convert_weekday (weekday)))
 
     if ( (!missing (member) | !missing (birth_year) | !missing (gender)) &
-        (!any (c ('bo', 'ch', 'ny') %in% db_cities)))
+        !city %in% (c ('bo', 'ch', 'ny')))
         stop ('Only Boston, Chicago, and New York provide demographic data')
     if (!missing (member))
         x <- c (x, 'member' = bike_transform_member (member))
@@ -320,7 +327,8 @@ bike_tripmat <- function (bikedb, city, start_date, end_date,
         x <- c (x, 'birth_year' = list (birth_year))
     }
     if (!missing (gender))
-        x <- c (x, 'gender' = bike_transform_gender (gender))
+        if (!is.null (bike_transform_gender (gender)))
+            x <- c (x, 'gender' = bike_transform_gender (gender))
 
     if ( (missing (city) & length (x) > 0) |
         (!missing (city) & length (x) > 1) )
@@ -341,9 +349,9 @@ bike_tripmat <- function (bikedb, city, start_date, end_date,
                            "' AND s2.city = '", city, "'")
         qry <- paste (qry, "ORDER BY s1.stn_id, s2.stn_id")
 
-        db <- RSQLite::dbConnect (RSQLite::SQLite(), bikedb, create = FALSE)
-        trips <- RSQLite::dbGetQuery (db, qry)
-        RSQLite::dbDisconnect(db)
+        db <- DBI::dbConnect (RSQLite::SQLite(), bikedb, create = FALSE)
+        trips <- DBI::dbGetQuery (db, qry)
+        DBI::dbDisconnect(db)
     }
 
 
