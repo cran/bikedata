@@ -220,13 +220,13 @@ bike_transform_gender <- function (gender)
 #' operating durations of each stations, so trip numbers are increased for
 #' stations that have only operated a short time, and vice versa.
 #' @param long If FALSE, a square tripmat of (num-stations, num_stations) is
-#' returns; if TRUE, a long-format matrix of (stn-from, stn-to, ntrips) is
+#' returned; if TRUE, a long-format matrix of (stn-from, stn-to, ntrips) is
 #' returned.
 #' @param quiet If FALSE, progress is displayed on screen
 #'
 #' @return If \code{long = FALSE}, a square matrix of numbers of trips between
-#' each station, otherwise a long-form data.frame with three columns of of
-#' (start_station, end_station, num_trips)
+#' each station, otherwise a long-form \pkg{tibble} with three columns of of
+#' (\code{start_station_id, end_station_id, numtrips}).
 #'
 #' @note The \code{city} parameter should be given for databases containing data
 #' from multiple cities, otherwise most of the resultant trip matrix is likely
@@ -234,6 +234,12 @@ bike_transform_gender <- function (gender)
 #' character format, with arbitrary (or no) delimiters between fields. Single
 #' numeric times are interpreted as hours, with 24 interpreted as day's end at
 #' 23:59:59.
+#'
+#' @note If \code{standardise = TRUE}, the trip matrix will have the same number
+#' of trips, but they will be re-distributed as described, with more recent
+#' stations having more trips than older stations. Trip number are also
+#' non-integer in this case, whereas they are always integer-valued for
+#' \code{standardise = FALSE}.
 #'
 #' @export
 #' 
@@ -284,24 +290,7 @@ bike_tripmat <- function (bikedb, city, start_date, end_date,
         stop ("Can't get trip matrix if bikedb isn't provided")
 
     bikedb <- check_db_arg (bikedb)
-
-    db_cities <- bike_cities_in_db (bikedb)
-    if (missing (city))
-    {
-        if (length (db_cities) > 1)
-        {
-            stop ('Calls to bike_tripmat must specify city; cities in current ',
-                  'database are [', paste (db_cities, collapse = ' '), ']')
-        } else
-            city <- db_cities [1]
-    } else if (!missing (city))
-    {
-        city <- convert_city_names (city)
-        if (is.na (city))
-            stop ('city not recognised')
-        if (!city %in% bike_cities_in_db (bikedb))
-            stop ('city ', city, ' not represented in database')
-    }
+    city <- check_city_arg (bikedb, city)
 
     x <- c (NULL, 'city' = city)
     if (!missing (start_date))
@@ -315,9 +304,12 @@ bike_tripmat <- function (bikedb, city, start_date, end_date,
     if (!missing (weekday))
         x <- c (x, 'weekday' = list (convert_weekday (weekday)))
 
-    if ( (!missing (member) | !missing (birth_year) | !missing (gender)) &
+    if ( (!missing (birth_year) | !missing (gender)) &
         !city %in% (c ('bo', 'ch', 'ny')))
         stop ('Only Boston, Chicago, and New York provide demographic data')
+    if ( !missing (member) & !city %in% c ('bo', 'ch', 'ny', 'la', 'ph'))
+        stop (paste0 ('Only Boston, Chicago, New York, LA, and ',
+                      'Philly provide member/non-member data'))
     if (!missing (member))
         x <- c (x, 'member' = bike_transform_member (member))
     if (!missing (birth_year))
@@ -368,13 +360,9 @@ bike_tripmat <- function (bikedb, city, start_date, end_date,
 
     if (!long)
     {
-        trips <- reshape2::dcast (trips, start_station_id ~ end_station_id,
-                                  value.var = 'numtrips', fill = 0,
-                                  fun.aggregate = sum)
-        row.names (trips) <- trips$start_station_id
-        trips$start_station_id <- NULL
-        trips <- as.matrix (trips)
+        trips <- long2wide (trips)
         trips [is.na (trips)] <- 0
+        attr (trips, "variable") <- "numtrips" # used in bike_match_matrices
     } else
     {
         trips$numtrips <- ifelse (is.na (trips$numtrips) == TRUE, 0,
@@ -383,4 +371,51 @@ bike_tripmat <- function (bikedb, city, start_date, end_date,
     }
 
     return (trips)
+}
+
+#' convert long-form trip or distance tibble to square matrix
+#'
+#' @param mat Long-form trip or distance matrix
+#' @return Equivalent square matrix
+#'
+#' @noRd
+long2wide <- function (mat)
+{
+    variable <- "numtrips"
+    if ("numtrips" %in% names (mat))
+        mat <- reshape2::dcast (mat, start_station_id ~ end_station_id,
+                                value.var = "numtrips", fill = 0,
+                                fun.aggregate = sum)
+    else
+    {
+        mat <- reshape2::dcast (mat, start_station_id ~ end_station_id,
+                                value.var = "distance")
+        variable <- "distance"
+    }
+
+    row.names (mat) <- mat$start_station_id
+    mat$start_station_id <- NULL
+    mat <- as.matrix (mat)
+    attr (mat, "variable") <- variable
+
+    return (mat)
+}
+
+#' convert wide-form trip or distance matrix to long form
+#'
+#' @param mat Wide-form trip or distance matrix
+#' @return Equivalent long-form tibble
+#'
+#' @note This is only used in \code{match_dmat_tmat}
+#'
+#' @noRd
+bike_wide2long <- function (mat)
+{
+    zvar <- attr (mat, "variable") # "numtrips" or "distance"
+
+    mat <- reshape2::melt (mat,
+                           id.vars = c (rownames (mat), colnames (mat)))
+    names (mat) <- c ("start_station_id", "end_station_id", zvar)
+
+    return (mat)
 }

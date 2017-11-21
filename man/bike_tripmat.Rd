@@ -44,15 +44,15 @@ operating durations of each stations, so trip numbers are increased for
 stations that have only operated a short time, and vice versa.}
 
 \item{long}{If FALSE, a square tripmat of (num-stations, num_stations) is
-returns; if TRUE, a long-format matrix of (stn-from, stn-to, ntrips) is
+returned; if TRUE, a long-format matrix of (stn-from, stn-to, ntrips) is
 returned.}
 
 \item{quiet}{If FALSE, progress is displayed on screen}
 }
 \value{
 If \code{long = FALSE}, a square matrix of numbers of trips between
-each station, otherwise a long-form data.frame with three columns of of
-(start_station, end_station, num_trips)
+each station, otherwise a long-form \pkg{tibble} with three columns of of
+(\code{start_station_id, end_station_id, numtrips}).
 }
 \description{
 Extract station-to-station trip matrix or data.frame from SQLite3 database
@@ -64,6 +64,12 @@ to be empty.  Both dates and times may be given either in numeric or
 character format, with arbitrary (or no) delimiters between fields. Single
 numeric times are interpreted as hours, with 24 interpreted as day's end at
 23:59:59.
+
+If \code{standardise = TRUE}, the trip matrix will have the same number
+of trips, but they will be re-distributed as described, with more recent
+stations having more trips than older stations. Trip number are also
+non-integer in this case, whereas they are always integer-valued for
+\code{standardise = FALSE}.
 }
 \examples{
 \dontrun{

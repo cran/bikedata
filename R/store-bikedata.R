@@ -71,6 +71,7 @@ store_bikedata <- function (bikedb, city, data_dir, dates = NULL, quiet = FALSE)
         val <- menu (c ("yes", "no"), graphics = FALSE, title = mt)
         if (val != 1)
             stop ('Yeah, probably better not to do that')
+        city <- bike_demographic_data ()$city
     }
 
     if (missing (data_dir))
@@ -84,13 +85,16 @@ store_bikedata <- function (bikedb, city, data_dir, dates = NULL, quiet = FALSE)
     {
         if (length (list.files (data_dir)) == 0)
             stop ('data_dir contains no files')
-        city <- get_bike_cities (data_dir)
+        city <- get_bike_cities (expand_home (data_dir))
     }
+    data_dir <- expand_home (data_dir)
 
     if (missing (bikedb))
         stop ("Can't store bikedata if bikedb isn't provided")
     if (!(grepl ('/', bikedb) | grepl ('*//*', bikedb)))
         bikedb <- file.path (tempdir (), bikedb)
+
+    bikedb <- expand_home (bikedb)
 
     city <- convert_city_names (city)
 
@@ -115,9 +119,9 @@ store_bikedata <- function (bikedb, city, data_dir, dates = NULL, quiet = FALSE)
                 message ('Unzipping raw data files for ', ci, ' ...')
         }
         if (ci == 'ch')
-            flists <- bike_unzip_files_chicago (data_dir, bikedb)
+            flists <- bike_unzip_files_chicago (data_dir, bikedb, dates)
         else
-            flists <- bike_unzip_files (data_dir, bikedb, ci)
+            flists <- bike_unzip_files (data_dir, bikedb, ci, dates)
 
         if (!quiet & length (city) > 1)
             message ('Reading files for ', ci, ' ...')
@@ -139,15 +143,16 @@ store_bikedata <- function (bikedb, city, data_dir, dates = NULL, quiet = FALSE)
             if (ci == 'ch')
             {
                 ch_stns <- bike_get_chicago_stations (flists)
-                nstations <- rcpp_import_stn_df (bikedb, ch_stns, 'ch') #nolint
+                if (nrow (ch_stns) > 0)
+                    nstations <- rcpp_import_stn_df (bikedb, ch_stns, 'ch')
             } else if (ci == 'lo')
             {
                 lo_stns <- bike_get_london_stations ()
-                nstations <- rcpp_import_stn_df (bikedb, lo_stns, 'lo') #nolint
+                nstations <- rcpp_import_stn_df (bikedb, lo_stns, 'lo')
             } else if (ci == 'dc')
             {
                 dc_stns <- bike_get_dc_stations ()
-                nstations <- rcpp_import_stn_df (bikedb, dc_stns, 'dc') #nolint
+                nstations <- rcpp_import_stn_df (bikedb, dc_stns, 'dc')
             }
 
             # main step: Import trips
@@ -344,13 +349,14 @@ get_flist_city <- function (data_dir, bikedb, city)
 
     ret <- NULL
     if (length (index) > 0)
-        ret <- paste0 (data_dir, '/', flist [index])
+        ret <- file.path (data_dir, flist [index])
 
     db <- DBI::dbConnect (RSQLite::SQLite(), bikedb, create = FALSE)
     db_files <- DBI::dbGetQuery (db, "SELECT * FROM datafiles")
     DBI::dbDisconnect (db)
 
     db_files <- db_files$name [db_files$city == city]
+    db_files <- file.path (data_dir, db_files)
 
     return (ret [!ret %in% db_files])
 }
@@ -361,6 +367,7 @@ get_flist_city <- function (data_dir, bikedb, city)
 #' @param bikedb A string containing the path to the SQLite3 database.
 #' If no directory specified, it is presumed to be in \code{tempdir()}.
 #' @param city City for which files are to be added to database
+#' @param dates If specified, data will be unzipped only for these dates
 #'
 #' @return List of three vectors of file names:
 #' \itemize{
@@ -375,10 +382,20 @@ get_flist_city <- function (data_dir, bikedb, city)
 #' multi-file zip archives (Chicago) have their own equivalent routines.
 #'
 #' @noRd
-bike_unzip_files <- function (data_dir, bikedb, city)
+bike_unzip_files <- function (data_dir, bikedb, city, dates)
 {
     flist_zip <- get_flist_city (data_dir = data_dir, bikedb = bikedb,
                                  city = city)
+    # These are only those files in data_dir but **not** in bikedb. Remove any
+    # not in dates:
+    if (!is.null (dates))
+    {
+        dates <- bike_convert_dates (dates) %>%
+            expand_dates_to_range %>%
+            convert_dates_to_filenames (city = city)
+        indx <- which (grepl (paste (dates, collapse = "|"), flist_zip))
+        flist_zip <- flist_zip [indx]
+    }
     existing_csv_files <- list.files (data_dir, pattern = '\\.csv$')
     flist_csv <- flist_rm <- NULL
 
@@ -419,6 +436,7 @@ bike_unzip_files <- function (data_dir, bikedb, city)
 #' @param data_dir Directory containing data files
 #' @param bikedb A string containing the path to the SQLite3 database 
 #' If no directory specified, it is presumed to be in \code{tempdir()}.
+#' @param dates If specified, data will be unzipped only for these dates
 #'
 #' @return List of three vectors of file names:
 #' \itemize{
@@ -437,10 +455,19 @@ bike_unzip_files <- function (data_dir, bikedb, city)
 #' file.
 #'
 #' @noRd
-bike_unzip_files_chicago <- function (data_dir, bikedb)
+bike_unzip_files_chicago <- function (data_dir, bikedb, dates)
 {
     flist_zip <- get_flist_city (data_dir = data_dir, bikedb = bikedb,
                                  city = 'ch')
+    if (!is.null (dates))
+    {
+        dates <- bike_convert_dates (dates) %>%
+            expand_dates_to_range %>%
+            convert_dates_to_filenames (city = "ch")
+        indx <- which (grepl (paste (dates, collapse = "|"), flist_zip))
+        flist_zip <- flist_zip [indx]
+    }
+
     flist_zip <- get_new_datafiles (bikedb, flist_zip)
     existing_csv_files <- list.files (data_dir, pattern = "Divvy.*\\.csv")
     if (length (existing_csv_files) == 0)

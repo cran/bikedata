@@ -66,7 +66,7 @@ get_new_datafiles <- function (bikedb, flist_zip)
         db <- DBI::dbConnect (RSQLite::SQLite(), bikedb, create = FALSE)
         old_files <- DBI::dbReadTable (db, 'datafiles')$name
         DBI::dbDisconnect (db)
-        flist_zip [which (!basename (flist_zip) %in% old_files)]
+        flist_zip <- flist_zip [which (!basename (flist_zip) %in% old_files)]
     }
 
     return (flist_zip)
@@ -317,25 +317,23 @@ bike_summary_stats <- function (bikedb)
     dates <- rbind (c (NULL, NULL), bike_datelimits (bikedb)) # so [,1] works
 
     latest_files <- bike_latest_files (bikedb)
-    if (length (cities) > 1)
+    latest <- NULL # latest_files aren't necessarily in db order
+    for (ci in cities)
     {
-        latest <- NULL # latest_files aren't necessarily in db order
-        for (ci in cities)
-        {
-            num_trips <- c (num_trips, bike_db_totals (bikedb, TRUE, city = ci))
-            num_stations <- c (num_stations, bike_db_totals (bikedb, FALSE,
-                                                             city = ci))
-            dates <- rbind (dates, bike_datelimits (bikedb, city = ci))
-            latest <- c (latest,
-                         latest_files [which (names (latest_files) == ci)])
-        }
-        latest_files <- c (NA, latest)
+        num_trips <- c (num_trips, bike_db_totals (bikedb, TRUE, city = ci))
+        num_stations <- c (num_stations, bike_db_totals (bikedb, FALSE,
+                                                         city = ci))
+        dates <- rbind (dates, bike_datelimits (bikedb, city = ci))
+        latest <- c (latest,
+                     latest_files [which (names (latest_files) == ci)])
     }
+    latest_files <- c (NA, as.logical (latest))
 
     res <- data.frame (city = as.character (c ('total', cities)),
                        num_trips = num_trips, num_stations = num_stations,
                        first_trip = dates [, 1], last_trip = dates [, 2],
-                       latest_files = latest_files)
+                       latest_files = latest_files,
+                       stringsAsFactors = FALSE)
     return (tibble::as_tibble (res))
 }
 
@@ -388,16 +386,7 @@ bike_daily_trips <- function (bikedb, city, station, member, birth_year, gender,
         stop ("Can't get daily trips if bikedb isn't provided")
 
     bikedb <- check_db_arg (bikedb)
-
-    cities <- bike_cities_in_db (bikedb)
-    if (missing (city))
-    {
-        if (length (cities) > 1)
-            stop ('bikedb contains multiple cities; please specify one')
-        else
-            city <- cities
-    } else
-        city <- convert_city_names (city)
+    city <- check_city_arg (bikedb, city)
 
     db <- DBI::dbConnect (RSQLite::SQLite(), bikedb, create = FALSE)
     qry <- paste0 ("SELECT STRFTIME('%Y-%m-%d', start_time) AS 'date', ",
@@ -513,7 +502,8 @@ bike_demographic_data <- function ()
                                         'Metro', 'Santander', 'Citibike',
                                         'Indego'),
                        demographic_data = c (TRUE, TRUE, FALSE, FALSE,
-                                             FALSE, TRUE, FALSE))
+                                             FALSE, TRUE, FALSE),
+                       stringsAsFactors = FALSE)
 
     return (dat)
 }

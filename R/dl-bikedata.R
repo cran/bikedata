@@ -47,6 +47,7 @@ dl_bikedata <- function (city, data_dir = tempdir(), dates = NULL,
     city <- convert_city_names (city)
 
     dl_files <- get_bike_files (city)
+    data_dir <- expand_home (data_dir)
     files <- file.path (data_dir, basename (dl_files))
 
     dates_exist <- TRUE # set to F is requested dates do not exist
@@ -84,6 +85,9 @@ dl_bikedata <- function (city, data_dir = tempdir(), dates = NULL,
                 }
                 if (!file.exists (destfile))
                     stop ('Download request failed')
+                # some junk files are also listed on AWS but not downloadable
+                if (resp$status_code != 200 & file.exists (destfile))
+                    chk <- file.remove (destfile)
             }
         }
     } else
@@ -100,14 +104,30 @@ dl_bikedata <- function (city, data_dir = tempdir(), dates = NULL,
         # London has raw csv files too, but sometimes the server delivers junk
         # data with default files that are very small. The following suffices to
         # remove these:
-        csvs <- paste0 (data_dir, '/',
-                        list.files (data_dir, pattern = '.csv'))
+        csvs <- file.path (data_dir, list.files (data_dir, pattern = '.csv'))
         indx <- which (file.info (csvs)$size < 1000)
         invisible (tryCatch (file.remove (csvs [indx]),
                              warning = function (w) NULL,
                              error = function (e) NULL))
         ptn <- paste0 (ptn, '|.csv')
+    } else if (city == 'ny')
+    {
+        # ny also has some junk .zip files, but temporarily disabled because all
+        # seems okay again now? (Oct 17)
+        #zips <- file.path (data_dir, list.files (data_dir, pattern = '.zip'))
+        #indx <- which (file.info (zips)$size < 1000)
+        #invisible (tryCatch (file.remove (zips [indx]),
+        #                     warning = function (w) NULL,
+        #                     error = function (e) NULL))
     }
 
     invisible (list.files (data_dir, pattern = ptn, full.names = TRUE))
+}
+
+#' @rdname dl_bikedata
+#' @export
+download_bikedata <- function (city, data_dir = tempdir(), dates = NULL,
+                               quiet = FALSE)
+{
+    dl_bikedata (city = city, data_dir = data_dir, dates = dates, quiet = quiet)
 }

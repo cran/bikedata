@@ -39,6 +39,39 @@ convert_city_names <- function (city)
     } else
         city <- city_code
 
+    if (any (is.na (city)))
+        stop ("city not recognised")
+
+    return (city)
+}
+
+#' check city arg
+#'
+#' @param bikedb Name of database holding bike trip data
+#' @param city Name of city as passed to functions such as \code{bike_tripmat},
+#' \code{bike_stations}, or \code{bike_distmat}
+#' @return Standardised version of \code{city} parameter
+#' @noRd
+check_city_arg <- function (bikedb, city)
+{
+    db_cities <- bike_cities_in_db (bikedb)
+    if (missing (city))
+    {
+        if (length (db_cities) > 1)
+        {
+            stop ('bikedb contains multiple cities; please specify one.',
+                  'cities in current database are [',
+                  paste (db_cities, collapse = ' '), ']')
+        } else
+            city <- db_cities [1]
+    } else if (!missing (city))
+    {
+        city <- convert_city_names (city)
+        if (is.na (city))
+            stop ('city not recognised')
+        if (!city %in% bike_cities_in_db (bikedb))
+            stop ('city ', city, ' not represented in database')
+    }
     return (city)
 }
 
@@ -54,6 +87,8 @@ check_db_arg <- function (bikedb)
 {
     if (exists (bikedb, envir = parent.frame ()))
         bikedb <- get (bikedb, envir = parent.frame ())
+
+    bikedb <- expand_home (bikedb)
 
     # Note that dirname (bikedb) == '.' can not be used because that prevents
     # bikedb = "./bikedb", so grepl must be used instead.
@@ -71,4 +106,12 @@ check_db_arg <- function (bikedb)
         stop ('bikedb does not appear to be a bikedata database')
 
     return (bikedb)
+}
+
+# expand unix-style tidle for home directory
+expand_home <- function (x)
+{
+    if (grepl ("~", x))
+        x <- gsub ("~", Sys.getenv ("HOME"), x)
+    return (x)
 }

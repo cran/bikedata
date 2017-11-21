@@ -229,21 +229,28 @@ convert_dates_to_filenames <- function (x, city = 'ny')
         hh <- ceiling (as.numeric (substring (x, 5, 6)) / 6)
         hh [hh == 1] <- 'Q1Q2'
         hh [hh == 2] <- 'Q3Q4'
-        x <- unique (paste0 (yy [indx], '_', hh))
+        x <- unique (c (paste0 (yy [indx], '_', hh),
+                        paste0 (yy [indx], '-', hh)))
         if (length (indx13) > 0)
             x <- c ('2013', x)
     } else if (city == 'lo')
     {
+        indx1 <- which (yy < 2015)
+        indx2 <- which (yy >= 2015)
+        x1 <- yy [indx1]
+        x <- x [indx2]
         mm <- month.abb [as.numeric (substring (x, 5, 6))]
-        x <- paste0 (mm, yy)
+        x <- c (paste0 (mm, yy), paste0 (mm, substring (yy, 3, 4)))
+        x <- unique (c (x, x1))
     } else if (city %in% c ('dc', 'la', 'ph'))
     {
         # LA uses both "YYYY_QX" and "QX_YYYY"
         qq <- paste0 ('Q', ceiling (as.numeric (substring (x, 5, 6)) / 3))
         if (city == 'dc')
-            x <- unique (paste0 (yy, '_', qq))
+            x <- unique (paste0 (yy, '-', qq))
         else
-            x <- unique (c (paste0 (yy, '_', qq), paste0 (qq, '_', yy)))
+            x <- unique (c (paste0 (yy, '_', qq), paste0 (qq, '_', yy),
+                            paste0 (yy, qq)))
     } else
         x <- paste0 (x)
 

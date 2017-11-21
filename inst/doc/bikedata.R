@@ -12,7 +12,7 @@ library (bikedata)
 
 ## ----store-la-data, eval = TRUE------------------------------------------
 bikedb <- file.path (tempdir (), "bikedb.sqlite") # or whatever
-store_bikedata (city = 'la', bikedb = bikedb, quiet = TRUE)
+store_bikedata (city = 'la', bikedb = bikedb, dates = 2017, quiet = TRUE)
 
 ## ---- eval = FALSE-------------------------------------------------------
 #  store_bikedata (bikedb = bikedb, city = 'divvy', dates = 2016, quiet = TRUE)
