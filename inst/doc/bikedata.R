@@ -12,10 +12,12 @@ library (bikedata)
 
 ## ----store-la-data, eval = TRUE------------------------------------------
 bikedb <- file.path (tempdir (), "bikedb.sqlite") # or whatever
-store_bikedata (city = 'la', bikedb = bikedb, dates = 2017, quiet = TRUE)
+dl_bikedata (city = 'la', dates = 2017, quiet = TRUE)
+store_bikedata (data_dir = tempdir (), bikedb = bikedb, quiet = TRUE)
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  store_bikedata (bikedb = bikedb, city = 'divvy', dates = 2016, quiet = TRUE)
+#  dl_bikedata (city = 'divvy', dates = 2016, quiet = TRUE)
+#  store_bikedata (bikedb = bikedb, data_dir = tempdir (), quiet = TRUE)
 
 ## ---- echo = FALSE-------------------------------------------------------
 3595383
@@ -24,7 +26,7 @@ store_bikedata (city = 'la', bikedb = bikedb, dates = 2017, quiet = TRUE)
 #  bike_db_totals (bikedb = bikedb)
 
 ## ---- echo = FALSE-------------------------------------------------------
-3726719
+3823255
 
 ## ---- eval = FALSE-------------------------------------------------------
 #  index_bikedata_db (bikedb = bikedb)
@@ -36,18 +38,18 @@ store_bikedata (city = 'la', bikedb = bikedb, dates = 2017, quiet = TRUE)
 ## ------------------------------------------------------------------------
 
 ## ---- echo = FALSE-------------------------------------------------------
-x <- "matrix"; y <- c (66, 66); z <- 131336
+x <- "matrix"; y <- c (129, 129); z <- 227872
 x; y; z
 
 ## ---- eval = FALSE-------------------------------------------------------
 #  bike_tripmat (bikedb = bikedb, city = 'la', long = TRUE)
 
 ## ---- echo = FALSE-------------------------------------------------------
-n <- 4356
-ss <- c (rep ('la3005', 10), rep (NA, n - 10))
-es <- c ('la3005', 'la3006', 'la3007', 'la3008', 'la3009',
-         'la3010', 'la3011', 'la3014', 'la3016', 'la3018', rep (NA, n - 10))
-nt <- c (324, 105, 31, 173, 1, 9, 86, 49, 12, 39, rep (NA, n - 10))
+n <- 16641
+ss <- c (rep ('la3000', 10), rep (NA, n - 10))
+es <- c ('la3000', 'la3005', 'la3006', 'la3007', 'la3008', 'la3009',
+         'la3010', 'la3011', 'la3013', 'la3014', rep (NA, n - 10))
+nt <- c (162, 19, 9, 0, 0, 0, 0, 0, 0, 5, rep (NA, n - 10))
 
 tm <- tibble::tibble (start_station_id = ss,
                       end_station_id = es, numtrips = nt)
@@ -57,11 +59,11 @@ tm
 #  bike_stations (bikedb = bikedb)
 
 ## ---- echo = FALSE-------------------------------------------------------
-n <- 662
+n <- 724
 id <- seq (n)
 city <- rep ('la', n)
 ids <- c ('la3005', 'la3006', 'la3007', 'la3008', 'la3009',
-          'la3010', 'la3011', 'la3014', 'la3016', 'la3018', rep (NA, n - 10))
+          'la3010', 'la3011', 'la3013', 'la3014', 'la3016', rep (NA, n - 10))
 x <- c (-118.2590, -118.2567, -118.2546, -118.2627, -118.4728,
         -118.2549, -118.2680, -118.2372, -118.2416, -118.2601, rep (NA, n - 10))
 y <- c (34.04855, 34.04554, 34.05048, 34.04661, 33.98738,
@@ -97,10 +99,16 @@ stations1
 #  dl_bikedata (city = 'dc', dates = '2016.03-2016.05')
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  ntrips <- store_bikedata (bikedb = bikedb, city = 'ny',
-#                            dates = '2014 aug - 2015 Dec')
+#  dl_bikedata (city = 'sf', data_dir = '/data/stored/here')
 
 ## ---- eval = FALSE-------------------------------------------------------
+#  store_bikedata (city = 'sf', data_dir = '/data/stored/here', bikedb = bikedb)
+
+## ---- eval = FALSE-------------------------------------------------------
+#  bike_stored_files (bikedb = bikedb = city = 'sf')
+
+## ---- eval = FALSE-------------------------------------------------------
+#  dl_bikedata (bikedb = bikedb, city = 'ny', dates = '2014 aug - 2015 dec')
 #  ntrips <- store_bikedata (bikedb = bikedb, city = 'ny',
 #                            data_dir = '/data/stored/here')
 

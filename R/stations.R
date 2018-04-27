@@ -57,12 +57,16 @@ bike_stations <- function (bikedb, city)
 
 #' Get London station data from Transport for London (TfL)
 #'
+#' @param quiet If \code{FALSE}, just declare getting stations (coz it can take
+#' a while).
 #' @return \code{data.frame} of (id, name, lon, lat) of all stations in London's
 #' Santander Cycles system
 #'
 #' @noRd
-bike_get_london_stations <- function ()
+bike_get_london_stations <- function (quiet = TRUE)
 {
+    if (!quiet)
+        message ("getting london stations ...", appendLF = FALSE)
     tfl_url <- "https://api.tfl.gov.uk/BikePoint"
     resp <- httr::GET (tfl_url)
     res <- NULL
@@ -78,6 +82,9 @@ bike_get_london_stations <- function ()
         res <- data.frame (id = id, name = name, lon = lon, lat = lat,
                            stringsAsFactors = FALSE)
     }
+    if (!quiet)
+        message (" done")
+
     return (res)
 }
 
@@ -108,6 +115,134 @@ bike_get_chicago_stations <- function (flists)
     return (res)
 }
 
+#' Get Boston station data
+#'
+#' @param flists List of files returned from bike_unzip_files, which includes
+#' entries in \code{$flist_csv_stns}
+#'
+#' @return \code{data.frame} of (id, name, lon, lat) of all stations in Boston's
+#' Hubway system
+#'
+#' @noRd
+bike_get_bo_stations <- function (flists, data_dir)
+{
+    if (is.null (flists$flist_csv_stns))
+    {
+        # then download station data ...
+        dl_files <- get_bike_files (city = 'bo')
+        dl_files <- dl_files [which (grepl ('Stations', dl_files))]
+        for (f in dl_files)
+        {
+            furl <- gsub (" ", "%20", f)
+            f <- gsub (" ", "", f)
+            destfile <- file.path (data_dir, basename(f))
+            resp <- httr::GET (furl,
+                               httr::write_disk (destfile, overwrite = TRUE))
+            if (resp$status_code != 200)
+            {
+                count <- 0
+                while (!file.exists (destfile) & count < 5)
+                {
+                    resp <- httr::GET (furl,
+                                       httr::write_disk (destfile,
+                                                         overwrite = TRUE))
+                    count <- count + 1
+                }
+                if (!file.exists (destfile))
+                    stop ('Download request failed')
+            }
+        }
+        flists$flist_csv_stns <- file.path (data_dir, basename (dl_files))
+    }
+
+    id <- name <- lon <- lat <- NULL
+    for (f in flists$flist_csv_stns)
+    {
+        fi <- read.csv (f, header = TRUE)
+        id <- c (id, paste0 (fi$Station.ID))
+        name <- c (name, paste0 (fi$Station))
+        lon <- c (lon, paste0 (fi$Longitude))
+        lat <- c (lat, paste0 (fi$Latitude))
+    }
+    # Remove apostrophes from names coz they muck up sqlite fields:
+    name <- gsub ("\'", "", name)
+    res <- data.frame (id = id, name = name, lon = lon, lat = lat,
+                       stringsAsFactors = FALSE)
+    res <- res [which (!duplicated (res)), ]
+
+    return (res)
+}
+
+#' Get Minneapolis/Minnesota station data
+#'
+#' @return \code{data.frame} of (id, name, lon, lat) of all stations in Boston's
+#' Hubway system
+#'
+#' @noRd
+bike_get_mn_stations <- function (flists)
+{
+    if (is.null (flists$flist_csv_stns))
+        stop ("Station files must be in nominated data_dir")
+
+    id <- name <- lon <- lat <- NULL
+    for (f in flists$flist_csv_stns)
+    {
+        fi <- read.csv (f, header = TRUE)
+        idcol <- grep ("terminal|number", names (fi), ignore.case = TRUE)
+        nmcol <- grep ("station|name", names (fi), ignore.case = TRUE)
+        loncol <- grep ("lon", names (fi), ignore.case = TRUE)
+        latcol <- grep ("lat", names (fi), ignore.case = TRUE)
+        id <- c (id, paste0 (fi [[idcol]]))
+        name <- c (name, paste0 (fi [[nmcol]]))
+        lon <- c (lon, paste0 (fi [[loncol]]))
+        lat <- c (lat, paste0 (fi [[latcol]]))
+    }
+    # Remove apostrophes from names coz they muck up sqlite fields:
+    name <- gsub ("\'", "", name)
+    res <- data.frame (id = id, name = name, lon = lon, lat = lat,
+                       stringsAsFactors = FALSE)
+    res <- res [which (!duplicated (res)), ]
+
+    indx <- which (res$lon != "N/A" & res$lon != "NA" &
+                   res$lat != "N/A" & res$lat != "NA")
+    return (res [indx, ])
+}
+
+#' Get Montreal station data
+#'
+#' @return \code{data.frame} of (id, name, lon, lat) of all stations in
+#' Montreal's Bixi system
+#'
+#' @noRd
+bike_get_mo_stations <- function (flists)
+{
+    if (is.null (flists$flist_csv_stns))
+        stop ("Station files must be in nominated data_dir")
+
+    id <- name <- lon <- lat <- NULL
+    for (f in flists$flist_csv_stns)
+    {
+        fi <- read.csv (f, header = TRUE)
+        idcol <- grep ("code", names (fi), ignore.case = TRUE)
+        nmcol <- grep ("name", names (fi), ignore.case = TRUE)
+        loncol <- grep ("longitude", names (fi), ignore.case = TRUE)
+        latcol <- grep ("latitude", names (fi), ignore.case = TRUE)
+        id <- c (id, paste0 (fi [[idcol]]))
+        name <- c (name, paste0 (fi [[nmcol]]))
+        lon <- c (lon, paste0 (fi [[loncol]]))
+        lat <- c (lat, paste0 (fi [[latcol]]))
+    }
+    # Remove apostrophes from names coz they muck up sqlite fields:
+    name <- gsub ("\'", "", name)
+    res <- data.frame (id = id, name = name, lon = lon, lat = lat,
+                       stringsAsFactors = FALSE)
+    res <- res [which (!duplicated (res)), ]
+
+    indx <- which (res$lon != "N/A" & res$lon != "NA" &
+                   res$lat != "N/A" & res$lat != "NA")
+    return (res [indx, ])
+}
+
 #' Get Washington DC station data
 #'
 #' @return \code{data.frame} of (id, name, lon, lat) of all stations in
@@ -126,13 +261,38 @@ bike_get_dc_stations <- function ()
 {
     # rm apostrophes from names (only "L'Enfant Plaza"):
     # stations_dc is lazy loaded from R/sysdata.rda
-    name <- noquote (gsub ("'", "", stations_dc$address)) #nolint
+    name <- noquote (gsub ("'", "", sysdata$stations_dc$name)) #nolint
     name <- trimws (name, which = 'right') # trim terminal white space
-    res <- data.frame (id = stations_dc$terminal_number,
+    res <- data.frame (id = sysdata$stations_dc$id,
                        name = name,
-                       lon = stations_dc$longitude,
-                       lat = stations_dc$latitude,
+                       lon = sysdata$stations_dc$lon,
+                       lat = sysdata$stations_dc$lat,
                        stringsAsFactors = FALSE)
+
+    return (res)
+}
+
+#' Get Guadalajara stations
+#'
+#' @return \code{data.frame} of (id, name, lon, lat) of all stations in
+#' Gaudalajara's mibici system
+#'
+#' @noRd
+bike_get_gu_stations <- function ()
+{
+    link <- "https://www.mibici.net/site/assets/files/1118/nomenclatura_1.csv"
+    suppressMessages (
+                      dat <- httr::GET (link) %>%
+                          httr::content (encoding = 'UTF-8')
+                      )
+
+    # Remove apostrophes from names coz they muck up sqlite fields:
+    nm <- gsub ("\"", "", dat$name)
+    nm <- gsub ("\'", "", nm)
+    res <- data.frame (id = dat$id, name = nm,
+                       lon = dat$longitude, lat = dat$latitude,
+                       stringsAsFactors = FALSE)
+    res <- res [which (!duplicated (res)), ]
 
     return (res)
 }

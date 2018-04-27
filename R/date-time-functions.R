@@ -233,14 +233,45 @@ convert_dates_to_filenames <- function (x, city = 'ny')
                         paste0 (yy [indx], '-', hh)))
         if (length (indx13) > 0)
             x <- c ('2013', x)
+    } else if (city == 'bo')
+    {
+        # Boston now has 2011-2013 bundled as single files, and 2014 bundled as
+        # two files
+        for (i in paste0 (2011:2013))
+        {
+            indx <- which (grepl (i, paste0 (x)))
+            if (length (indx) > 0)
+            {
+                x <- x [which (!seq (x) %in% indx)]
+                x <- c (i, x)
+            }
+        }
+        indx14 <- grep ('2014', paste0 (x))
+        if (length (indx14) > 0)
+        {
+            x14 <- x [indx14]
+            x <- x [which (!seq (x) %in% indx14)]
+
+            x14a <- vapply (paste0 (201401:201406), function (i)
+                            any (grepl (i, x14)), logical (1))
+            if (any (x14a))
+                x <- c ('2014_1', x)
+            x14b <- vapply (paste0 (201407:201412), function (i)
+                            any (grepl (i, x14)), logical (1))
+            if (any (x14b))
+                x <- c ('2014_2', x)
+        }
     } else if (city == 'lo')
     {
         indx1 <- which (yy < 2015)
         indx2 <- which (yy >= 2015)
         x1 <- yy [indx1]
         x <- x [indx2]
-        mm <- month.abb [as.numeric (substring (x, 5, 6))]
-        x <- c (paste0 (mm, yy), paste0 (mm, substring (yy, 3, 4)))
+        if (length (x) > 0)
+        {
+            mm <- month.abb [as.numeric (substring (x, 5, 6))]
+            x <- c (paste0 (mm, yy), paste0 (mm, substring (yy, 3, 4)))
+        }
         x <- unique (c (x, x1))
     } else if (city %in% c ('la', 'ph'))
     {
@@ -250,10 +281,19 @@ convert_dates_to_filenames <- function (x, city = 'ny')
             x <- unique (paste0 (yy, '-', qq))
         else
             x <- unique (c (paste0 (yy, '_', qq), paste0 (qq, '_', yy),
+                            paste0 (yy, '-', qq), paste0 (qq, '-', yy),
                             paste0 (yy, qq)))
-    } else if (city %in% c ('dc')) # changed to annual file dumps
+    } else if (city %in% c ('mo')) # annual file dumps
     {
         x <- unique (yy)
+        x <- x [which (x > 2013)]
+    } else if (city %in% c ('dc')) # annual up to current year
+    {
+        yr <- substr (Sys.Date (), 1, 4)
+        x <- c (unique (yy [which (yy < yr)]), x [which (yy == yr)])
+    } else if (city %in% c ('gu')) # strict YYYY_MM
+    {
+        x <- unique (paste0 (yy, '_', as.numeric (substring (x, 5, 6))))
     } else
         x <- paste0 (x)
 

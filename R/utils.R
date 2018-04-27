@@ -2,12 +2,19 @@
 #'
 #' @param city Name of one or more cities or corresponding bicycle hire systems
 #'
-#' @return A two letter prefix matching (ny, bo, ch, dc, la)
+#' @return A two letter prefix matching (bo, ch, dc, la, lo, mn, ny, ph)
 #'
 #' @noRd
 convert_city_names <- function (city)
 {
     city <- gsub (' ', '', city)
+    if (any (nchar (city) >= 4))
+    {
+        if (substring (tolower (city), 1, 4) == 'sant')
+            city <- 'lo'
+        else if (substring (tolower (city), 1, 4) == 'sanf')
+            city <- 'sf'
+    }
     city <- substring (gsub ('[[:punct:]]', '', tolower (city)), 1, 3)
     indx_lo <- which (city %in% c ('lon', 'los'))
     indx <- which (!seq (city) %in% indx_lo)
@@ -26,9 +33,14 @@ convert_city_names <- function (city)
                      'wa', 'dc', 'ca', # washington dc capital bike share
                      'la', 'me', # LA metro
                      'lo', 'sa', # london santander
-                     'ph', 'in') # philly indego
+                     'ph', 'in', # philly indego
+                     'mn', 'mi', # minneapolis/st.paul nice ride
+                     'fo', 'go', 'sf', # ford gobike san fran
+                     'mo', 'bi', # montreal bixi
+                     'gu') # guadalajara mibici
     city_code <- c ('ny', 'ny', 'ny', 'bo', 'bo', 'ch', 'ch',
-                    'dc', 'dc', 'dc', 'la', 'la', 'lo', 'lo', 'ph', 'ph')
+                    'dc', 'dc', 'dc', 'la', 'la', 'lo', 'lo', 'ph', 'ph',
+                    'mn', 'mn', 'sf', 'sf', 'sf', 'mo', 'mo', 'gu')
     city_code <- city_code [pmatch (city, city_names)]
 
     if (length (indx_lo) > 0)
@@ -114,4 +126,20 @@ expand_home <- function (x)
     if (grepl ("~", x))
         x <- gsub ("~", Sys.getenv ("HOME"), x)
     return (x)
+}
+
+# header files are parsed using sysdata.rda, which is written on load to the
+# following file, subsequently read directly within the C++ routines
+header_file_name <- function ()
+{
+    file.path (tempdir (), "field_names.csv")
+}
+
+data_has_stations <- function (city)
+{
+    cities <- bike_demographic_data ()$city
+    ret <- rep (FALSE, length (cities))
+    cities_with_station_data <- c ("ny", "la", "ph", "sf")
+    ret [cities %in% cities_with_station_data] <- TRUE
+    return (ret [which (cities == city)])
 }

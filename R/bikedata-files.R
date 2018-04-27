@@ -22,13 +22,15 @@ get_aws_bike_files <- function (bucket)
     # NOTE: xml2::xml_find_all (doc, ".//Key") should work here but doesn't, so
     # this manually does what that would do
     files <- lapply (nodes, function (i)
-                     if (grepl ('zip', i))
+                     if (grepl ('zip|csv', i))
                          strsplit (strsplit (as.character (i),
                                  "<Key>") [[1]] [2], "</Key>") [[1]] [1] )
-    # nyc citibike data has a redundamt file as first item
     files <- unlist (files)
+
+    # nyc citibike data has a redundamt file as first item
     if (bucket == 'tripdata')
         files <- files [2:length (files)]
+
     paste0 (host, "/", bucket, "/", files)
 }
 
@@ -109,6 +111,48 @@ get_nabsa_files <- function (city)
 }
 
 
+#' get_montreal_bike_files
+#'
+#' Returns list of URLs for each trip data file from Montreal's Bixi system
+#'
+#' @return List of URLs used to download data
+#'
+#' @noRd
+get_montreal_bike_files <- function ()
+{
+    host <- "https://montreal.bixi.com/en/open-data"
+    . <- NULL # suppress R CMD check note #nolint
+    nodes <- httr::content (httr::GET (host), encoding = 'UTF-8') %>%
+        xml2::xml_find_all (".//div")
+    nodes <- nodes [which (xml2::xml_attr (nodes, "class") ==
+                           "container open-data-history")]
+    hrefs <- xml2::xml_find_all (nodes, ".//a") %>%
+        xml2::xml_attr ("href")
+    unique (hrefs)
+}
+
+#' get_guadala_bike_files
+#'
+#' Returns list of URLs for each trip data file from Guadalajara's mibici system
+#'
+#' @return List of URLs used to download data
+#'
+#' @noRd
+get_guadala_bike_files <- function ()
+{
+    host_base <- "https://www.mibici.net"
+    host <- paste0 (host_base, "/en/open-data/")
+    . <- NULL # suppress R CMD check note #nolint
+    nodes <- httr::content (httr::GET (host), encoding = 'UTF-8') %>%
+        xml2::xml_find_all (".//div")
+    nodes <- nodes [which (xml2::xml_attr (nodes, "class") ==
+                           "unit one-quarter")]
+    hrefs <- xml2::xml_find_all (nodes, ".//a") %>%
+        xml2::xml_attr ("href")
+    hrefs <- paste0 (host_base, hrefs [grepl ("datos", hrefs)])
+    unique (hrefs)
+}
+
 #' get_bike_files
 #'
 #' Returns list of URLs for each trip data file from nominated system
@@ -120,8 +164,9 @@ get_nabsa_files <- function (city)
 #' @noRd
 get_bike_files <- function (city)
 {
-    aws_cities <- c ('ny', 'dc', 'bo')
-    buckets <- c ('tripdata', 'capitalbikeshare-data', 'hubway-data')
+    aws_cities <- c ('ny', 'dc', 'bo', 'sf')
+    buckets <- c ('tripdata', 'capitalbikeshare-data',
+                  'hubway-data', 'fordgobike-data')
     nabsa_cities <- c ('la', 'ph')
 
     if (city %in% aws_cities)
@@ -132,8 +177,16 @@ get_bike_files <- function (city)
         files <- get_nabsa_files (city = city)
     else if (city == 'ch')
         files <- get_chicago_bike_files ()
+    else if (city == 'gu')
+        files <- get_guadala_bike_files ()
     else if (city == 'lo')
         files <- get_london_bike_files ()
+    else if (city == 'mn')
+        warning ('Data for the Nice Ride MN system must be downloaded ',
+                 'manually from\nhttps://www.niceridemn.org/data/, and ',
+                 'loaded using store_bikedata')
+    else if (city == 'mo')
+        files <- get_montreal_bike_files ()
 
     return (files)
 }

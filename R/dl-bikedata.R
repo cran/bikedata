@@ -1,5 +1,7 @@
 #' Download hire bicycle data
 #'
+#' Download data for subsequent storage via \link{store_bikedata}.
+#'
 #' @param city City for which to download bike data, or name of corresponding
 #' bike system (see Details below).
 #' @param data_dir Directory to which to download the files
@@ -8,19 +10,21 @@
 #' @param quiet If FALSE, progress is displayed on screen
 #'
 #' @section Details:
-#' This function produces zip-compressed data in R's temporary directory. City
-#' names are not case sensitive, and must only be long enough to unambiguously
-#' designate the desired city. Names of corresponding bike systems can also be
-#' given.  Currently possible cities (with minimal designations in parentheses)
-#' and names of bike hire systems are:
+#' This function produces (generally) zip-compressed data in R's temporary
+#' directory. City names are not case sensitive, and must only be long enough to
+#' unambiguously designate the desired city. Names of corresponding bike systems
+#' can also be given.  Currently possible cities (with minimal designations in
+#' parentheses) and names of bike hire systems are:
 #' \tabular{lr}{
-#'  New York City (ny)\tab Citibike\cr
-#'  Washington, D.C. (dc)\tab Capital Bike Share\cr
-#'  Chicago (ch)\tab Divvy Bikes\cr
-#'  Los Angeles (la)\tab Metro Bike Share\cr
 #'  Boston (bo)\tab Hubway\cr
+#'  Chicago (ch)\tab Divvy Bikes\cr
+#'  Washington, D.C. (dc)\tab Capital Bike Share\cr
+#'  Los Angeles (la)\tab Metro Bike Share\cr
 #'  London (lo)\tab Santander Cycles\cr
+#'  Minnesota (mn)\tab NiceRide\cr
+#'  New York City (ny)\tab Citibike\cr
 #'  Philadelphia (ph)\tab Indego\cr
+#'  San Francisco Bay Area (sf)\tab Ford GoBike\cr
 #' }
 #'
 #' Ensure you have a fast internet connection and at least 100 Mb space
@@ -45,6 +49,10 @@ dl_bikedata <- function (city, data_dir = tempdir(), dates = NULL,
         stop ('city must be specified for dl_bikedata()')
 
     city <- convert_city_names (city)
+    if (city == 'mn')
+        warning ('Data for the Nice Ride MN system must be downloaded ',
+                 'manually from\nhttps://www.niceridemn.org/data/, and ',
+                 'loaded using store_bikedata')
 
     dl_files <- get_bike_files (city)
     data_dir <- expand_home (data_dir)
@@ -56,14 +64,17 @@ dl_bikedata <- function (city, data_dir = tempdir(), dates = NULL,
     else
     {
         dates <- bike_convert_dates (dates) %>%
-            expand_dates_to_range %>%
-            convert_dates_to_filenames (city = city)
-        indx <- which (grepl (paste (dates, collapse = "|"), files))
+            expand_dates_to_range () %>%
+            convert_dates_to_filenames (city = city) %>%
+            sort ()
+        indx <- which (grepl (paste (dates, collapse = "|"), files,
+                              ignore.case = TRUE))
         if (length (indx) == 0)
             dates_exist <- FALSE
         else
             indx <- which (!file.exists (files) &
-                           grepl (paste (dates, collapse = "|"), files))
+                           grepl (paste (dates, collapse = "|"), files,
+                                  ignore.case = TRUE))
     }
 
     if (length (indx) > 0)
@@ -136,7 +147,8 @@ dl_bikedata <- function (city, data_dir = tempdir(), dates = NULL,
         #                     error = function (e) NULL))
     }
 
-    invisible (list.files (data_dir, pattern = ptn, full.names = TRUE))
+    ret <- list.files (data_dir, pattern = ptn, full.names = TRUE)
+    invisible (ret [!grepl ("field_names", ret)])
 }
 
 #' @rdname dl_bikedata

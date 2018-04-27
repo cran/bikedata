@@ -118,6 +118,41 @@ bike_station_dates <- function (bikedb, city)
 # *****************************************************
 
 
+#' Get names of files read into database
+#'
+#' @param bikedb A string containing the path to the SQLite3 database.
+#' @param city Optional city for which filenames are to be obtained
+#'
+#' @export
+#'
+#' @examples
+#' data_dir <- tempdir ()
+#' bike_write_test_data (data_dir = data_dir)
+#' bikedb <- file.path (data_dir, 'testdb')
+#' store_bikedata (data_dir = data_dir, bikedb = bikedb)
+#' files <- bike_stored_files (bikedb = bikedb)
+#' # returns a tibble with names of all stored files
+#'
+#' bike_rm_test_data (data_dir = data_dir)
+#' bike_rm_db (bikedb)
+#' # don't forget to remove real data!
+#' # file.remove (list.files ('.', pattern = '.zip'))
+bike_stored_files <- function (bikedb, city)
+{
+    if (missing (bikedb))
+        stop ("Can't get daily trips if bikedb isn't provided")
+
+    bikedb <- check_db_arg (bikedb)
+
+    db <- DBI::dbConnect (RSQLite::SQLite(), bikedb, create = FALSE)
+    qry <- "SELECT * FROM datafiles"
+    if (!missing (city))
+        qry <- paste0 (qry, " WHERE city = '", city, "'")
+    files <- DBI::dbGetQuery (db, qry)
+    DBI::dbDisconnect (db)
+    return (files)
+}
+
 #' Count number of entries in sqlite3 database tables
 #'
 #' @param bikedb A string containing the path to the SQLite3 database.
@@ -494,15 +529,19 @@ bike_daily_trips <- function (bikedb, city, station, member, birth_year, gender,
 #' }
 bike_demographic_data <- function ()
 {
-    dat <- data.frame (city = c ('bo', 'ch', 'dc', 'la', 'lo', 'ny', 'ph'),
+    dat <- data.frame (city = c ('bo', 'ch', 'dc', 'gu', 'la', 'lo',
+                                 'mo', 'mn', 'ny', 'ph', 'sf'),
                        city_name = c ('Boston', 'Chicago', 'Washington DC',
-                                      'Los Angeles', 'London', 'New York',
-                                      'Philadelphia'),
+                                      'Guadalajara', 'Los Angeles', 'London',
+                                      'Montreal', 'Minneapolis', 'New York',
+                                      'Philadelphia', 'Bay Area'),
                        bike_system = c ('Hubway', 'Divvy', 'CapitalBikeShare',
-                                        'Metro', 'Santander', 'Citibike',
-                                        'Indego'),
-                       demographic_data = c (TRUE, TRUE, FALSE, FALSE,
-                                             FALSE, TRUE, FALSE),
+                                        'mibici', 'Metro', 'Santander', 'Bixi',
+                                        'NiceRide', 'Citibike', 'Indego',
+                                        'FordGoBike'),
+                       demographic_data = c (TRUE, TRUE, FALSE, TRUE, FALSE,
+                                             FALSE, FALSE, TRUE, TRUE, FALSE,
+                                             TRUE),
                        stringsAsFactors = FALSE)
 
     return (dat)

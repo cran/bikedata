@@ -20,7 +20,11 @@ filter_bike_tripmat <- function (bikedb, ...)
     # dplyr.
     x <- as.list (...)
     qryargs <- c()
-    qry <- paste("SELECT s1.stn_id AS start_station_id,",
+    # and NOTE here that the DISTINCT is necessary for Boston, which has a
+    # station table with 300 entries for 193 stations, because lots change
+    # names. All must nevertheless be stored so names in the trip data can be
+    # mapped to IDs.
+    qry <- paste("SELECT DISTINCT s1.stn_id AS start_station_id,",
                  "s2.stn_id AS end_station_id, iq.numtrips",
                  "FROM stations s1, stations s2 LEFT OUTER JOIN",
                  "(SELECT start_station_id, end_station_id,",
@@ -291,12 +295,21 @@ bike_tripmat <- function (bikedb, city, start_date, end_date,
 
     bikedb <- check_db_arg (bikedb)
     city <- check_city_arg (bikedb, city)
+    dl <- vapply (bike_datelimits (bikedb), function (i)
+                  strsplit (i, " ") [[1]] [1], "character") %>%
+                as.character ()
 
     x <- c (NULL, 'city' = city)
     if (!missing (start_date))
-        x <- c (x, 'start_date' = convert_ymd (start_date))
+    {
+        dl [1] <- convert_ymd (start_date)
+        x <- c (x, 'start_date' = dl [1])
+    }
     if (!missing (end_date))
-        x <- c (x, 'end_date' = convert_ymd (end_date))
+    {
+        dl [2] <- convert_ymd (end_date)
+        x <- c (x, 'end_date' = dl [2])
+    }
     if (!missing (start_time))
         x <- c (x, 'start_time' = convert_hms (start_time))
     if (!missing (end_time))
@@ -328,7 +341,11 @@ bike_tripmat <- function (bikedb, city, start_date, end_date,
         trips <- filter_bike_tripmat (bikedb, x)
     } else
     {
-        qry <- paste("SELECT s1.stn_id AS start_station_id,",
+        # NOTE that the DISTINCT is necessary for Boston, which has a station
+        # table with 300 entries for 193 stations, because lots change names.
+        # All must nevertheless be stored so names in the trip data can be
+        # mapped to IDs.
+        qry <- paste("SELECT DISTINCT s1.stn_id AS start_station_id,",
                      "s2.stn_id AS end_station_id, iq.numtrips",
                      "FROM stations s1, stations s2 LEFT OUTER JOIN",
                      "(SELECT start_station_id, end_station_id,",
@@ -362,13 +379,16 @@ bike_tripmat <- function (bikedb, city, start_date, end_date,
     {
         trips <- long2wide (trips)
         trips [is.na (trips)] <- 0
-        attr (trips, "variable") <- "numtrips" # used in bike_match_matrices
     } else
     {
         trips$numtrips <- ifelse (is.na (trips$numtrips) == TRUE, 0,
                                   trips$numtrips)
         trips <- tibble::as_tibble (trips)
     }
+    attr (trips, "variable") <- "numtrips" # used in bike_match_matrices
+    attr (trips, "bikedata_version") <- packageVersion ("bikedata")
+    attr (trips, "start_date") <- dl [1]
+    attr (trips, "end_date") <- dl [2]
 
     return (trips)
 }
