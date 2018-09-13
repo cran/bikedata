@@ -10,10 +10,13 @@ library (bikedata)
 ## ---- eval = FALSE, echo = FALSE, message = FALSE------------------------
 #  devtools::load_all ()
 
-## ----store-la-data, eval = TRUE------------------------------------------
-bikedb <- file.path (tempdir (), "bikedb.sqlite") # or whatever
-dl_bikedata (city = 'la', dates = 2017, quiet = TRUE)
-store_bikedata (data_dir = tempdir (), bikedb = bikedb, quiet = TRUE)
+## ----store-la-data, eval = FALSE-----------------------------------------
+#  bikedb <- file.path (tempdir (), "bikedb.sqlite") # or whatever
+#  dl_bikedata (city = 'la', dates = 2016, quiet = TRUE)
+#  store_bikedata (data_dir = tempdir (), bikedb = bikedb, quiet = TRUE)
+
+## ----store-la-data-dummy, echo = FALSE-----------------------------------
+98138
 
 ## ---- eval = FALSE-------------------------------------------------------
 #  dl_bikedata (city = 'divvy', dates = 2016, quiet = TRUE)
@@ -26,7 +29,7 @@ store_bikedata (data_dir = tempdir (), bikedb = bikedb, quiet = TRUE)
 #  bike_db_totals (bikedb = bikedb)
 
 ## ---- echo = FALSE-------------------------------------------------------
-3823255
+3693521
 
 ## ---- eval = FALSE-------------------------------------------------------
 #  index_bikedata_db (bikedb = bikedb)
@@ -38,18 +41,18 @@ store_bikedata (data_dir = tempdir (), bikedb = bikedb, quiet = TRUE)
 ## ------------------------------------------------------------------------
 
 ## ---- echo = FALSE-------------------------------------------------------
-x <- "matrix"; y <- c (129, 129); z <- 227872
+x <- "matrix"; y <- c (64, 64); z <- 98138
 x; y; z
 
 ## ---- eval = FALSE-------------------------------------------------------
 #  bike_tripmat (bikedb = bikedb, city = 'la', long = TRUE)
 
 ## ---- echo = FALSE-------------------------------------------------------
-n <- 16641
-ss <- c (rep ('la3000', 10), rep (NA, n - 10))
-es <- c ('la3000', 'la3005', 'la3006', 'la3007', 'la3008', 'la3009',
-         'la3010', 'la3011', 'la3013', 'la3014', rep (NA, n - 10))
-nt <- c (162, 19, 9, 0, 0, 0, 0, 0, 0, 5, rep (NA, n - 10))
+n <- 4096
+ss <- c (rep ('la3005', 10), rep (NA, n - 10))
+es <- c ('la3005', 'la3006', 'la3007', 'la3008', 'la3010', 'la3011',
+         'la3014', 'la3016', 'la3018', 'la3019', rep (NA, n - 10))
+nt <- c (252, 93, 23, 153, 5, 63, 40, 10, 31, 36, rep (NA, n - 10))
 
 tm <- tibble::tibble (start_station_id = ss,
                       end_station_id = es, numtrips = nt)
@@ -59,15 +62,15 @@ tm
 #  bike_stations (bikedb = bikedb)
 
 ## ---- echo = FALSE-------------------------------------------------------
-n <- 724
+n <- 660
 id <- seq (n)
 city <- rep ('la', n)
 ids <- c ('la3005', 'la3006', 'la3007', 'la3008', 'la3009',
           'la3010', 'la3011', 'la3013', 'la3014', 'la3016', rep (NA, n - 10))
-x <- c (-118.2590, -118.2567, -118.2546, -118.2627, -118.4728,
-        -118.2549, -118.2680, -118.2372, -118.2416, -118.2601, rep (NA, n - 10))
-y <- c (34.04855, 34.04554, 34.05048, 34.04661, 33.98738,
+x <- c (34.04855, 34.04554, 34.05048, 34.04661, 33.98738,
         34.03705, 34.04113, 34.05661, 34.05290, 34.04373, rep (NA, n - 10))
+y <- c (-118.2590, -118.2567, -118.2546, -118.2627, -118.4728,
+        -118.2549, -118.2680, -118.2372, -118.2416, -118.2601, rep (NA, n - 10))
 stations1 <- tibble::tibble (id = id, city = city, stn_id = ids,
                              name = rep ('', n), longitude = x, latitude = y)
 stations1
@@ -171,17 +174,17 @@ stations2 <- tibble::tibble (id = id, city = city, stn_id = ids,
 stations2
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  bike_summary_stats ('bikedb')
+#  bike_summary_stats (bikedb)
 
 ## ---- echo = FALSE-------------------------------------------------------
-ntr <- c (3726719, 3595383, 131336)
+ntr <- c (3693521, 3595383, 98138)
 nst <- c (662, 596, 66)
 startd <- c ('2016-01-01 00:07:00', '2016-01-01 00:07:00', 
              '2016-07-07 04:17:00')
-endd <- c ('2017-03-31 23:45:00', '2016-12-31 23:57:52',
-           '2017-03-31 23:45:00')
+endd <- rep ('2016-12-31 23:57:52', 3)
 fls <- c (NA, TRUE, TRUE)
-tbl <- tibble::tibble (num_trips = ntr, num_stations = nst,
+tbl <- tibble::tibble (city = c ("total", "ch", "la"),
+                       num_trips = ntr, num_stations = nst,
                        first_trip = as.factor (startd), 
                        last_trip = as.factor (endd), latest_files = fls)
 tbl
@@ -190,7 +193,7 @@ tbl
 #  bike_db_totals (bikedb = bikedb)
 
 ## ---- echo = FALSE-------------------------------------------------------
-3726719
+3693521
 
 ## ---- eval = FALSE-------------------------------------------------------
 #  bike_db_totals (bikedb = bikedb, city = "ch")
@@ -202,13 +205,13 @@ tbl
 #  bike_db_totals (bikedb = bikedb, city = "la")
 
 ## ---- echo = FALSE-------------------------------------------------------
-131336
+93138
 
 ## ---- eval = FALSE-------------------------------------------------------
 #  bike_db_totals (bikedb = bikedb, trips = FALSE)
 
 ## ---- echo = FALSE-------------------------------------------------------
-662
+660
 
 ## ---- eval = FALSE-------------------------------------------------------
 #  bike_db_totals (bikedb = bikedb, trips = FALSE, city = "ch")
@@ -220,13 +223,13 @@ tbl
 #  bike_db_totals (bikedb = bikedb, trips = FALSE, city = "la")
 
 ## ---- echo = FALSE-------------------------------------------------------
-66
+64
 
 ## ---- eval = FALSE-------------------------------------------------------
 #  bike_datelimits (bikedb = bikedb)
 
 ## ---- echo = FALSE-------------------------------------------------------
-c ('first' = "2016-01-01 00:07:00", 'last' = "2017-03-31 23:45:00")
+c ('first' = "2016-01-01 00:07:00", 'last' = "2016-12-31 23:57:52")
 
 ## ---- eval = FALSE-------------------------------------------------------
 #  bike_datelimits (bikedb = bikedb, city = 'ch')
@@ -238,7 +241,7 @@ c ('first' = "2016-01-01 00:07:00", 'last' = "2016-12-31 23:57:52")
 #  bike_latest_files (bikedb = bikedb)
 
 ## ------------------------------------------------------------------------
-c ('la' = TRUE, 'ch' = TRUE)
+c ('la' = TRUE, 'ch' = FALSE)
 
 ## ---- eval = FALSE-------------------------------------------------------
 #  bike_daily_trips (bikedb = bikedb, city = 'ch')
@@ -287,15 +290,15 @@ stations1
 #  dplyr::collect (dplyr::tbl (db, 'trips'))
 
 ## ---- echo = FALSE-------------------------------------------------------
-n <- 100000
+n <- 3693511
 id <- seq (n)
 city <- rep ('la', n)
-dur <- c (480, 720, 1020, 300, 300, 1200, 720, 2880, 2820, 1500, 
+dur <- c (180, 1980, 300, 10860, 420, 780, 600, 600, 2880, 960,
           rep (NA, n - 10))
-st <- c ('2017-01-01 00:15:00', '2017-01-01 00:24:00', '2017-01-01 00:28:00',
-         '2017-01-01 00:38:00', '2017-01-01 00:38:00', '2017-01-01 00:39:00',
-         '2017-01-01 00:43:00', '2017-01-01 00:56:00', '2017-01-01 00:57:00',
-         '2017-01-01 01:54:00', rep (NA, n - 10))
+st <- c ('2016-01-01 00:15:00', '2016-01-01 00:24:00', '2016-01-01 00:28:00',
+         '2016-01-01 00:38:00', '2016-01-01 00:38:00', '2016-01-01 00:39:00',
+         '2016-01-01 00:43:00', '2016-01-01 00:56:00', '2016-01-01 00:57:00',
+         '2016-01-01 01:54:00', rep (NA, n - 10))
 et <- c ('2017-01-01 00:23:00', '2017-01-01 00:36:00', '2017-01-01 00:45:00',
          '2017-01-01 00:43:00', '2017-01-01 00:43:00', '2017-01-01 00:59:00',
          '2017-01-01 00:55:00', '2017-01-01 01:44:00', '2017-01-01 01:44:00',
@@ -307,11 +310,9 @@ tibble::tibble (id = id, city = city, trip_duration = dur,
                 start_station_id = nachr, end_station_id = nachr,
                 bike_id = nachr, user_type = nachr, birth_year = naint,
                 gender = naint)
-warning ('Only first 100,000 results retrieved. Use n = Inf to retrieve all.',
-         call. = FALSE)
 
 ## ---- eval = FALSE-------------------------------------------------------
-#  db <- RSQLite::dbConnect(SQLite(), bikedb, create = FALSE)
+#  db <- RSQLite::dbConnect(RSQLite::SQLite(), bikedb, create = FALSE)
 #  qry <- "SELECT stn_id, name FROM stations WHERE city = 'ch'"
 #  stns <- RSQLite::dbGetQuery(db, qry)
 #  RSQLite::dbDisconnect(db)
@@ -340,25 +341,6 @@ data.frame (stn_id = c ('ch456', 'ch101', 'ch109', 'ch21', 'ch80', 'ch346'),
 #      lines (c (x1 [i], x2 [i]), c (y1 [i], y2 [i]), col = cols [nt [i]],
 #          lwd = ntrips$numtrips [i] * 10 / max (ntrips$numtrips))
 
-## ----plot-la, echo = FALSE, eval = TRUE----------------------------------
-# For some reason the R CMD build version loses one longitude in stns which
-# mucks up the plot
-stns <- bike_stations (bikedb = bikedb, city = 'la')
-ntrips <- bike_tripmat (bikedb = bikedb, city = 'la', long = TRUE)
-x1 <- stns$longitude [match (ntrips$start_station_id, stns$stn_id)]
-y1 <- stns$latitude [match (ntrips$start_station_id, stns$stn_id)]
-x2 <- stns$longitude [match (ntrips$end_station_id, stns$stn_id)]
-y2 <- stns$latitude [match (ntrips$end_station_id, stns$stn_id)]
-# Set plot area to central region of bike system
-xlims <- c (-118.27, -118.23)
-ylims <- c (34.02, 34.07)
-plot (stns$longitude, stns$latitude, xlim = xlims, ylim = ylims)
-cols <- rainbow (100)
-nt <- ceiling (ntrips$numtrips * 100 / max (ntrips$numtrips))
-for (i in seq (x1))
-    lines (c (x1 [i], x2 [i]), c (y1 [i], y2 [i]), col = cols [nt [i]],
-        lwd = ntrips$numtrips [i] * 10 / max (ntrips$numtrips))
-
 ## ----get-la-highways, eval = FALSE---------------------------------------
 #  library (magrittr)
 #  xlims_la <- range (stns$longitude, na.rm = TRUE)
@@ -368,7 +350,7 @@ for (i in seq (x1))
 #  xlims_la <- xlims_la + c (-ex, ex) * diff (xlims_la)
 #  ylims_la <- ylims_la + c (-ex, ex) * diff (ylims_la)
 #  bbox <- c (xlims_la [1], ylims_la [1], xlims_la [2], ylims_la [2])
-#  bbox <- c (xlims [1], ylims [1], xlims [2], ylims [2])
+#  bbox <- c (xlims [1], xlims [2], ylims [1], ylims [2])
 #  # Then the actual osmdata query to extract all OpenStreetMap highways
 #  highways <- osmdata::opq (bbox = bbox) %>%
 #      osmdata::add_osm_feature (key = 'highway') %>%

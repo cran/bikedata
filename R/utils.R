@@ -1,3 +1,20 @@
+#' List of cities currently included in bikedata
+#'
+#' @return A \code{data.frame} of cities, abbreviations, and names of bike
+#' systems currently able to be accessed.
+#'
+#' @export
+#'
+#' @examples
+#' bike_cities ()
+bike_cities <- function ()
+{
+    dat <- bike_demographic_data ()
+    dat$demographic_data <- NULL
+    return (dat)
+}
+
+
 #' Convert city names to two-letter prefixes
 #'
 #' @param city Name of one or more cities or corresponding bicycle hire systems
@@ -127,6 +144,39 @@ expand_home <- function (x)
         x <- gsub ("~", Sys.getenv ("HOME"), x)
     return (x)
 }
+
+# check whether data_dir exists and add option to create if not
+# no code coverage coz it's interactive
+check_data_dir <- function (x) # nocov start
+{
+    split_path <- function (x)
+    {
+        if (dirname(x)==x)
+            x
+        else
+            c (basename (x), split_path (dirname (x)))
+    }
+    if (!file.exists (x))
+    {
+        message ("directory ", x, " does not exist")
+        inp <- readline ("Should it be created (y/n)? ") %>%
+                tolower ()
+        if (substring (inp, 1, 1) == "y")
+        {
+            xsp <- rev (split_path (x)) [-1]
+            for (i in seq_along (xsp))
+            {
+                fp <- do.call (file.path, as.list (xsp [1:i]))
+                if (!file.exists (fp))
+                    dir.create (fp)
+            }
+        } else
+        {
+            stop ("Okay, stopping now")
+        }
+    }
+    invisible (x)
+} # nocov end
 
 # header files are parsed using sysdata.rda, which is written on load to the
 # following file, subsequently read directly within the C++ routines

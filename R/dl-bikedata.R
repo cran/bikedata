@@ -55,10 +55,11 @@ dl_bikedata <- function (city, data_dir = tempdir(), dates = NULL,
                  'loaded using store_bikedata')
 
     dl_files <- get_bike_files (city)
-    data_dir <- expand_home (data_dir)
+    data_dir <- expand_home (data_dir) %>%
+        check_data_dir () # check for existence and create if non-existent
     files <- file.path (data_dir, basename (dl_files))
 
-    dates_exist <- TRUE # set to F is requested dates do not exist
+    dates_exist <- TRUE # set to F if requested dates do not exist
     if (is.null (dates))
         indx <- which (!file.exists (files))
     else
@@ -67,6 +68,7 @@ dl_bikedata <- function (city, data_dir = tempdir(), dates = NULL,
             expand_dates_to_range () %>%
             convert_dates_to_filenames (city = city) %>%
             sort ()
+        dates <- unique (c (dates, tolower (dates)))
         indx <- which (grepl (paste (dates, collapse = "|"), files,
                               ignore.case = TRUE))
         if (length (indx) == 0)

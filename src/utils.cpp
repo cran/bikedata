@@ -8,7 +8,7 @@
 //' http://stackoverflow.com/questions/29847915/implementing-strtok-whose-delimiter-has-more-than-one-character
 //'
 //' @noRd
-char *strtokm(char *str, const char *delim)
+char *utils::strtokm(char *str, const char *delim)
 {
     static char *tok;
     static char *next;
@@ -41,7 +41,7 @@ char *strtokm(char *str, const char *delim)
 //' @return Next token
 //'
 //' @noRd
-std::string str_token (std::string * line, const char * delim)
+std::string utils::str_token (std::string * line, const char * delim)
 {
     size_t ipos = line->find (delim, 0);
     std::string res = line->substr (0, ipos);
@@ -55,19 +55,47 @@ std::string str_token (std::string * line, const char * delim)
 //' Remove dos line ending from a character string
 //'
 //' @noRd
-void rm_dos_end (char *str)
+void utils::rm_dos_end (char *str)
 {
     char *p = strrchr (str, '\r');
     if (p && p[1]=='\n' && p[2]=='\0') 
         p[0] = '\0';
 }
 
-bool strfound (const std::string str, const std::string target)
+bool utils::strfound (const std::string str, const std::string target)
 {
     bool found = false;
     if (str.find (target) != std::string::npos)
         found = true;
     return found;
+}
+
+//' convert_datetime_dmy
+//'
+//' For London, with possible formats of:
+//' d/m/YYYY HH:MM
+//' d/m/YYYY HH:MM:ss
+//'
+//' @noRd
+std::string utils::convert_datetime_dmy (std::string str)
+{
+    std::string ret;
+    if (str.find (" ") == std::string::npos)
+    {
+        ret = "NA";
+    } else
+    {
+        size_t ipos = str.find (" ");
+        std::string dmy = str.substr (0, ipos);
+        str = str.substr (ipos + 1, str.length () - ipos - 1);
+
+        dmy = utils::convert_date_dmy (dmy);
+        if (!utils::time_is_standard (str))
+            str = utils::convert_time (str);
+
+        ret = dmy + " " + str;
+    }
+    return ret;
 }
 
 //' convert_datetime
@@ -85,7 +113,7 @@ bool strfound (const std::string str, const std::string target)
 //' YYYY-MM-DD HH:M
 //'
 //' @noRd
-std::string convert_datetime (std::string str)
+std::string utils::convert_datetime (std::string str)
 {
     std::string ret;
     if (str.find (" ") == std::string::npos)
@@ -97,17 +125,17 @@ std::string convert_datetime (std::string str)
         std::string ymd = str.substr (0, ipos);
         str = str.substr (ipos + 1, str.length () - ipos - 1);
 
-        if (!date_is_standard (ymd))
-            ymd = convert_date (ymd);
-        if (!time_is_standard (str))
-            str = convert_time (str);
+        if (!utils::date_is_standard (ymd))
+            ymd = utils::convert_date (ymd);
+        if (!utils::time_is_standard (str))
+            str = utils::convert_time (str);
 
         ret = ymd + " " + str;
     }
     return ret;
 }
 
-bool date_is_standard (const std::string ymd)
+bool utils::date_is_standard (const std::string ymd)
 {
     // stardard is yyyy-mm-dd
     bool check = false;
@@ -117,7 +145,7 @@ bool date_is_standard (const std::string ymd)
     return check;
 }
 
-bool time_is_standard (const std::string hms)
+bool utils::time_is_standard (const std::string hms)
 {
     // stardard is HH:MM:SS
     bool check = false;
@@ -126,7 +154,7 @@ bool time_is_standard (const std::string hms)
     return check;
 }
 
-std::string convert_date (std::string ymd)
+std::string utils::convert_date (std::string ymd)
 {
     std::string delim = "-";
     if (ymd.find ("/") != std::string::npos)
@@ -148,13 +176,41 @@ std::string convert_date (std::string ymd)
     }
     if (y.size () == 2)
         y = "20" + y;
-    zero_pad (m);
-    zero_pad (d);
+    utils::zero_pad (m);
+    utils::zero_pad (d);
 
     return y + "-" + m + "-" + d;
 }
 
-std::string convert_time (std::string hms)
+std::string utils::convert_date_dmy (std::string dmy)
+{
+    std::string delim = "-";
+    if (dmy.find ("/") != std::string::npos)
+        delim = "/";
+
+    size_t ipos = dmy.find (delim.c_str ());
+    std::string d = dmy.substr (0, ipos);
+    dmy = dmy.substr (ipos + 1, dmy.length () - ipos - 1);
+    ipos = dmy.find (delim.c_str ());
+    std::string m = dmy.substr (0, ipos);
+    std::string y = dmy.substr (ipos + 1, dmy.length () - ipos - 1);
+
+    if (d.size () == 4) // change d/m/yyyy -> yyyy/d/m
+    {
+        std::string s = y;
+        y = d;
+        d = m;
+        m = s;
+    }
+    if (y.size () == 2)
+        y = "20" + y;
+    utils::zero_pad (m);
+    utils::zero_pad (d);
+
+    return y + "-" + m + "-" + d;
+}
+
+std::string utils::convert_time (std::string hms)
 {
     // Some systems have decimal seconds which are discarded here:
     if (hms.length () > 8 && hms.find (".") != std::string::npos)
@@ -174,13 +230,13 @@ std::string convert_time (std::string hms)
         m = hms;
         s = "00";
     }
-    zero_pad (h);
-    zero_pad (m);
-    zero_pad (s);
+    utils::zero_pad (h);
+    utils::zero_pad (m);
+    utils::zero_pad (s);
     return h + delim + m + delim + s;
 }
 
-void zero_pad (std::string &t)
+void utils::zero_pad (std::string &t)
 {
     if (t.size () == 1)
         t = "0" + t;
@@ -192,7 +248,7 @@ void zero_pad (std::string &t)
 //' @param t1 start date-time string
 //' @param t2 end date-time string
 //' @noRd
-int timediff (std::string t1, std::string t2)
+int utils::timediff (std::string t1, std::string t2)
 {
     if (t1.length () < 19)
     {
@@ -212,7 +268,7 @@ int timediff (std::string t1, std::string t2)
         m2 = atoi (t2.substr (14, 2).c_str ()),
         s2 = atoi (t2.substr (17, 2).c_str ());
 
-    int y1 = daynum (Y1, M1, D1), y2 = daynum (Y2, M2, D2);
+    int y1 = utils::daynum (Y1, M1, D1), y2 = utils::daynum (Y2, M2, D2);
     int d1 = y1 * 3600 * 24 + h1 * 3600 + m1 * 60 + s1,
         d2 = y2 * 3600 * 24 + h2 * 3600 + m2 * 60 + s2;
 
@@ -221,12 +277,15 @@ int timediff (std::string t1, std::string t2)
 
 // Julian day number calculation from
 // http://www.cs.utsa.edu/~cs1063/projects/Spring2011/Project1/jdn-explanation.html
-int daynum (int y, int m, int d)
+int utils::daynum (int y, int m, int d)
 {
-    int a = static_cast <int> (floor ((14 - m) / 12));
+    double md = static_cast <double> (m);
+    double dd = static_cast <double> (d);
+    double yd = static_cast <double> (y);
+    int a = static_cast <int> (floor ((14.0 - md) / 12.0));
     y = y + 4800 - a;
     m = m + 12 * a - 3;
-    double res = d + floor ((153 * m + 2) / 5) + 365 * y +
-        floor (y / 4) - floor (y / 100) + floor (y / 400) - 32045;
+    double res = dd + floor ((153.0 * md + 2.0) / 5.0) + 365.0 * yd +
+        floor (yd / 4.0) - floor (yd / 100.0) + floor (yd / 400.0) - 32045.0;
     return static_cast <int> (res);
 }
