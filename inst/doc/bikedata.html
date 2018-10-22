@@ -11,7 +11,7 @@
 
 <meta name="author" content="Mark Padgham" />
 
-<meta name="date" content="2018-09-13" />
+<meta name="date" content="2018-10-05" />
 
 <title>bikedata</title>
 
@@ -1493,7 +1493,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">bikedata</h1>
 <h4 class="author"><em>Mark Padgham</em></h4>
-<h4 class="date"><em>2018-09-13</em></h4>
+<h4 class="date"><em>2018-10-05</em></h4>
 
 </div>
 
@@ -1608,7 +1608,7 @@ div.tocify {
 </tbody>
 </table>
 <p>The current version of the <code>bikedata</code> R package can be installed with the following command:</p>
-<pre class="r"><code>install.packages ('bikedata')</code></pre>
+<pre class="r"><code>install.packages (&#39;bikedata&#39;)</code></pre>
 <p>Or the development version with</p>
 <pre class="r"><code>devtools::install_github (&quot;mpadge/bikedata&quot;)</code></pre>
 <p>Once installed, it can be loaded in the usual way:</p>
@@ -1629,12 +1629,12 @@ div.tocify {
 <h2>2. Main Functions</h2>
 <p>The <code>bikedata</code> function <code>dl_bikedata()</code> downloads individual trip data from any or all or the above listed systems, and the function <code>store_bikedata()</code> stores them in an <code>SQLite3</code> database. For example, the following line will download all data from the Metro system of Los Angeles CA, U.S.A., and store them in a database named ‘bikedb’,</p>
 <pre class="r"><code>bikedb &lt;- file.path (tempdir (), &quot;bikedb.sqlite&quot;) # or whatever
-dl_bikedata (city = 'la', dates = 2016, quiet = TRUE)
+dl_bikedata (city = &#39;la&#39;, dates = 2016, quiet = TRUE)
 store_bikedata (data_dir = tempdir (), bikedb = bikedb, quiet = TRUE)</code></pre>
 <pre><code>## [1] 98138</code></pre>
 <p>The <code>store_bikedata()</code> function returns the number of trips added to the database. Both the downloaded data and the <code>SQLite3</code> database are stored by default in the temporary directory of the current <code>R</code> session. Any data downloaded into <code>tempdir()</code> will of course be deleted on termination of the active <strong>R</strong> session; use of other directories (as described below) will create enduring data which must be managed by the user.</p>
 <p>Successive calls to <code>store_bikedata()</code> will append additional data to the same database. For example, the following line will append all data from Chicago’s Divvy bike system from the year 2017 to the database created with the first call above.</p>
-<pre class="r"><code>dl_bikedata (city = 'divvy', dates = 2016, quiet = TRUE)
+<pre class="r"><code>dl_bikedata (city = &#39;divvy&#39;, dates = 2016, quiet = TRUE)
 store_bikedata (bikedb = bikedb, data_dir = tempdir (), quiet = TRUE)</code></pre>
 <pre><code>## [1] 3595383</code></pre>
 <p>The function again returns the number of trips <em>added</em> to the database, which is now less than the total number of trips stored of:</p>
@@ -1644,13 +1644,13 @@ store_bikedata (bikedb = bikedb, data_dir = tempdir (), quiet = TRUE)</code></pr
 <pre class="r"><code>index_bikedata_db (bikedb = bikedb)</code></pre>
 <p>This will speed up subsequent extraction of aggregated data.</p>
 <p>Having stored individual trip data in a database, the primary function of the <code>bikedata</code> package is <code>bike_tripmat()</code>, which extracts aggregate numbers of trips between all pairs of stations. The minimal arguments to this function are the name of the database, and the name of a city for databases holding data from multiple cities.</p>
-<pre class="r"><code>tm &lt;- bike_tripmat (bikedb = bikedb, city = 'la')
+<pre class="r"><code>tm &lt;- bike_tripmat (bikedb = bikedb, city = &#39;la&#39;)
 class (tm); dim (tm); sum (tm)</code></pre>
 <pre><code>## [1] &quot;matrix&quot;</code></pre>
 <pre><code>## [1] 64 64</code></pre>
 <pre><code>## [1] 98138</code></pre>
 <p>In 2016, the Los Angeles Metro system had 64 docking stations, and there were a total of 98,138 individual trips during the year. Trip matrices can also be extracted in long form using</p>
-<pre class="r"><code>bike_tripmat (bikedb = bikedb, city = 'la', long = TRUE)</code></pre>
+<pre class="r"><code>bike_tripmat (bikedb = bikedb, city = &#39;la&#39;, long = TRUE)</code></pre>
 <pre><code>## # A tibble: 4,096 x 3
 ##    start_station_id end_station_id numtrips
 ##    &lt;chr&gt;            &lt;chr&gt;             &lt;dbl&gt;
@@ -1682,46 +1682,46 @@ class (tm); dim (tm); sum (tm)</code></pre>
 ## 10    10 la    la3016 &quot;&quot;         34.0    -118.
 ## # ... with 650 more rows</code></pre>
 <p>Stations can also be extracted for particular cities:</p>
-<pre class="r"><code>st &lt;- bike_stations (bikedb = bikedb, city = 'ch')</code></pre>
+<pre class="r"><code>st &lt;- bike_stations (bikedb = bikedb, city = &#39;ch&#39;)</code></pre>
 <p>For consistency and to avoid potential confusion of function names, most functions in the <code>bikedata</code> package begin with the prefix <code>bike_</code> (except for <code>store_bikedata()</code> and <code>dl_bikedata()</code>).</p>
 <p>Databases generated by the <code>bikedata</code> package will generally be very large (commonly at least several GB), and many functions may take considerable time to execute. It is nevertheless possible to explore package functionality quickly through using the additional helper function, <code>bike_write_test_data()</code>. This function uses the <code>bike_dat</code> data set provided with the package, which contains details of 200 representative trips for each of the cities listed above. The function writes these data to disk as <code>.zip</code> files which can then be read by the <code>store_bikedata()</code> function.</p>
 <pre class="r"><code>bike_write_test_data ()
-store_bikedata (bikedb = 'testdb')
-bike_summary_stats (bikedb = 'testdb')</code></pre>
+store_bikedata (bikedb = &#39;testdb&#39;)
+bike_summary_stats (bikedb = &#39;testdb&#39;)</code></pre>
 <p>The <code>.zip</code> files generated by <code>bike_write_test_data()</code> are created by default in the <code>tempdir()</code> of the current <code>R</code> session, and so will be deleted on session termination. Specifying any alternative <code>bike_dir</code> will create enduring copies of those files in that location which ought to be deleted when finished.</p>
 <p>The remainder of this vignette provides further detail on these three distinct functional aspects of downloading, storage, and extraction of data.</p>
 </div>
 <div id="downloading-data" class="section level2">
 <h2>3. Downloading Data</h2>
 <p>Data may be downloaded with the <code>dl_bikedata()</code> function. In it’s simplest form, this function requires specification only of a city for which data are to be downloaded, although the directory is usually specified as well:</p>
-<pre class="r"><code>dl_bikedata (city = 'chicago', data_dir = '/data/bikedata/')</code></pre>
+<pre class="r"><code>dl_bikedata (city = &#39;chicago&#39;, data_dir = &#39;/data/bikedata/&#39;)</code></pre>
 </div>
 <div id="downloading-data-for-specific-date-ranges" class="section level2">
 <h2>3.1 Downloading data for specific date ranges</h2>
 <p>Both <code>store_bikedata()</code> and <code>dl_bikedata()</code> accept an additional argument (<code>dates</code>) specifying ranges of dates for which data should be downloaded and stored. The format of this argument is quite flexible so that,</p>
-<pre class="r"><code>dl_bikedata (city = 'dc', dates = 16)</code></pre>
+<pre class="r"><code>dl_bikedata (city = &#39;dc&#39;, dates = 16)</code></pre>
 <p>will download data from Washington DC’s Capital Bikeshare system for all 12 months of the year 2016, while,</p>
-<pre class="r"><code>dl_bikedata (city = 'ny', dates = 201604:201608)</code></pre>
+<pre class="r"><code>dl_bikedata (city = &#39;ny&#39;, dates = 201604:201608)</code></pre>
 <p>will download New York City data from April to August (inclusively) for that year. (Note that the default <code>data_dir</code> is the <code>tempdir()</code> of the current <code>R</code> session, with downloaded files being deleted upon session termination.) Dates can also be entered as character strings, with the following calls producing results equivalent to the preceding call,</p>
-<pre class="r"><code>dl_bikedata (city = 'ny', dates = '2016/04:2016/08')
-dl_bikedata (city = 'new york', dates = '201604:201608')
-dl_bikedata (city = 'n.y.c.', dates = '2016-04:2016-08')
-dl_bikedata (city = 'new', dates = '2016 Apr-Aug')</code></pre>
-<p>The only strict requirement for the format of <code>dates</code> is that years must be specified before months, and that some kind of separator must be used between the two except when formatted as single six-digit numbers or character strings (YYYYMM). The arguments <code>city = 'new'</code> and <code>city = 'CI'</code> in the final call are sufficient to uniquely identify New York City’s citibike system.</p>
+<pre class="r"><code>dl_bikedata (city = &#39;ny&#39;, dates = &#39;2016/04:2016/08&#39;)
+dl_bikedata (city = &#39;new york&#39;, dates = &#39;201604:201608&#39;)
+dl_bikedata (city = &#39;n.y.c.&#39;, dates = &#39;2016-04:2016-08&#39;)
+dl_bikedata (city = &#39;new&#39;, dates = &#39;2016 Apr-Aug&#39;)</code></pre>
+<p>The only strict requirement for the format of <code>dates</code> is that years must be specified before months, and that some kind of separator must be used between the two except when formatted as single six-digit numbers or character strings (YYYYMM). The arguments <code>city = &#39;new&#39;</code> and <code>city = &#39;CI&#39;</code> in the final call are sufficient to uniquely identify New York City’s citibike system.</p>
 <p>If files have been previously downloaded to a nominated directory, then calling the <code>dl_bikedata()</code> function will only download those data files that do not already exist. This function may thus be used to periodically refresh the contents of a nominated directory as new data files become available.</p>
 <p>Some systems disseminate data on quarterly (Washington DC and Los Angeles) or bi-annual (Chicago) bases. The <code>dates</code> argument in these cases is translated to the appropriate quarterly or bi-annual files. These are then downloaded as single files, and thus the following call</p>
-<pre class="r"><code>dl_bikedata (city = 'dc', dates = '2016.03-2016.05')</code></pre>
+<pre class="r"><code>dl_bikedata (city = &#39;dc&#39;, dates = &#39;2016.03-2016.05&#39;)</code></pre>
 <p>will actually download data for the entire first and second quarters of 2016. Even though the database constructed with <code>store_bikedata()</code> will then contain data beyond the specified date ranges, it is nevertheless possible to obtain a trip matrix corresponding to specific dates and/or times, as described below.</p>
 <p>The <code>dates</code> argument can also be passed to <code>store_bikedata</code>. This is useful in cases where data are to be loaded only from a restricted set of files in the given data directory.</p>
 </div>
 <div id="refreshing-data-sources" class="section level2">
 <h2>3.2 Refreshing data sources</h2>
 <p>The <code>dl_bikedata()</code> function will only download data that do not already exist in the nominated directory, and so can be use to periodically refresh data. If, for example, the following function were previously run at the end of 2017:</p>
-<pre class="r"><code>dl_bikedata (city = 'sf', data_dir = '/data/stored/here')</code></pre>
+<pre class="r"><code>dl_bikedata (city = &#39;sf&#39;, data_dir = &#39;/data/stored/here&#39;)</code></pre>
 <p>then running again in, say, April 2018, would download three additional files corresponding to the first three months of 2018. These data can then be added to a previously-constructed database with the usual call</p>
-<pre class="r"><code>store_bikedata (city = 'sf', data_dir = '/data/stored/here', bikedb = bikedb)</code></pre>
+<pre class="r"><code>store_bikedata (city = &#39;sf&#39;, data_dir = &#39;/data/stored/here&#39;, bikedb = bikedb)</code></pre>
 <p>If previous data have been stored in a nominated database, yet deleted from local storage, then any new data can be added by first getting the names of previously stored files with</p>
-<pre class="r"><code>bike_stored_files (bikedb = bikedb = city = 'sf')</code></pre>
+<pre class="r"><code>bike_stored_files (bikedb = bikedb = city = &#39;sf&#39;)</code></pre>
 <p>And then calling <code>dl_bikedata</code>, with <code>dates</code> specified to add only those files not previously stored.</p>
 </div>
 <div id="storing-data" class="section level2">
@@ -1729,9 +1729,9 @@ dl_bikedata (city = 'new', dates = '2016 Apr-Aug')</code></pre>
 <p>As mentioned above, individual trip data are stored in a single <code>SQLite3</code> database, created by default in the temporary directory of the current <code>R</code> session. Specifying a path for the <code>bikedb</code> argument in the <code>store_bikedata()</code> function will create a database that will remain in that location until explicitly deleted.</p>
 <p>The nominated database is created if it does not already exist, otherwise additional data are appended to the existing database. As described above, the same <code>dates</code> argument can be passed to both <code>dl_bikedata()</code> and <code>store_bikedata()</code> to download data within specified ranges of dates.</p>
 <p>Both <code>dl_bikedata()</code> and <code>store_bikedata()</code> are primarily intended to be used to download data for specified cities. It is possible to use the latter to store all data for all cities simply by calling <code>store_bikedata (bikedb = bikedb)</code>, however doing so will request confirmation that data from <em>all</em> cities really ought to be downloaded and/or stored. Intended general usage of the <code>store_bikedata()</code> function is illustrated in the following line:</p>
-<pre class="r"><code>dl_bikedata (bikedb = bikedb, city = 'ny', dates = '2014 aug - 2015 dec')
-ntrips &lt;- store_bikedata (bikedb = bikedb, city = 'ny',
-                          data_dir = '/data/stored/here')</code></pre>
+<pre class="r"><code>dl_bikedata (bikedb = bikedb, city = &#39;ny&#39;, dates = &#39;2014 aug - 2015 dec&#39;)
+ntrips &lt;- store_bikedata (bikedb = bikedb, city = &#39;ny&#39;,
+                          data_dir = &#39;/data/stored/here&#39;)</code></pre>
 <p>Note that passing with <code>city</code> parameter to <code>store_bikedata()</code> is not strictly necessary, but will ensure that only data for the nominated city are loaded from directories which may contain additional data from other cities.</p>
 </div>
 <div id="accessing-aggregate-data" class="section level2">
@@ -1740,9 +1740,9 @@ ntrips &lt;- store_bikedata (bikedb = bikedb, city = 'ny',
 <h3>5.1 Origin-Destination Matrices</h3>
 <p>As briefly described in the introduction, the primary function for extracting aggregate data from the <code>SQLite3</code> database established with <code>store_bikedata()</code> is <code>bike_tripmat()</code>. With the single mandatory argument naming the database, this function returns a matrix of numbers of trips between all pairs of stations. Trip matrices can be returned either in square form (the default), with both rows and columns named after the bicycle docking stations and matrix entries tallying numbers of rides between each pair of stations, or in long form by requesting <code>bike_tripmat (..., long = TRUE)</code>. The latter case will return a <a href="https://cran.r-project.org/package=tibble"><code>tibble</code></a> with the three columns of <code>station_station_id</code>, <code>end_station_id</code>, and <code>number_trips</code>, as demonstrated above.</p>
 <p>The data for the individual stations associated with the trip matrix can be extracted with <code>bike_stations()</code>, which returns a <code>tibble</code> containing the 6 columns of city, station code, station name, longitude, and latitude. Station codes are specified by the operators of each system, and pre-pended with a 2-character city identifier (so, for example, the first of the stations shown above is <code>la3005</code>). The <code>bike_stations()</code> function will generally return all operational stations within a given system, which <code>bike_tripmat()</code> will return only those stations in operation during the requested time period. The previous call stored all data from Chicago’s Divvybikes system for the year 2016 only, so the trip matrix has less entries than the full stations table, which includes stations added since then.</p>
-<pre class="r"><code>dim (bike_tripmat (bikedb = bikedb, city = 'ch'))</code></pre>
+<pre class="r"><code>dim (bike_tripmat (bikedb = bikedb, city = &#39;ch&#39;))</code></pre>
 <pre><code>## [1] 581 581</code></pre>
-<pre class="r"><code>dim (bike_stations (bikedb = bikedb, city = 'ch'))</code></pre>
+<pre class="r"><code>dim (bike_stations (bikedb = bikedb, city = &#39;ch&#39;))</code></pre>
 <pre><code>## [1] 596   6</code></pre>
 <div id="temporal-filtering-of-trip-matrices" class="section level4">
 <h4>5.1.1. Temporal filtering of trip matrices</h4>
@@ -1755,15 +1755,15 @@ ntrips &lt;- store_bikedata (bikedb = bikedb, city = 'ny',
 <li><code>weekday</code></li>
 </ol>
 <p>Arguments may in all cases be specified in a range of possible formats as long as they are unambiguous, and as long as ‘larger’ units precede ‘smaller’ units (so years before months before days, and hours before minutes before seconds). Acceptable formats may be illustrated through specifying a list of arguments to be passed to <code>bike_tripmat()</code>. This is done here through passing two lists to <code>bike_tripmat()</code> via <code>do.call()</code>, enabling the second list (<code>args1</code>) to be subsequently modified.</p>
-<pre class="r"><code>args0 &lt;- list (bikedb = bikedb, city = 'ny', args)
+<pre class="r"><code>args0 &lt;- list (bikedb = bikedb, city = &#39;ny&#39;, args)
 args1 &lt;- list (start_date = 16, end_time = 12, weekday = 1)
 tm &lt;- do.call (bike_tripmat, c (args0, args1))</code></pre>
-<p>In <code>args1</code>, a two-digit <code>start_date</code> (or <code>end_date</code>) is interpreted to represent a year, while a one- or two-digit <code>_time</code> is interpreted to represent an hour. A value of <code>end_time = 24</code> is interpreted as <code>end_time = '23:59:59'</code>, while a value of <code>_time = 0</code> is interpreted as <code>00:00:00</code>. The following further illustrate the variety of acceptable formats,</p>
-<pre class="r"><code>args1 &lt;- list (start_date = '2016 May', end_time = '12:39', weekday = 2:6)
-args1 &lt;- list (end_date = 20160720, end_time = 123915, weekday = c ('mo', 'we'))
-args1 &lt;- list (end_date = '2016-07-20', end_time = '12:39:15', weekday = 2:6)</code></pre>
+<p>In <code>args1</code>, a two-digit <code>start_date</code> (or <code>end_date</code>) is interpreted to represent a year, while a one- or two-digit <code>_time</code> is interpreted to represent an hour. A value of <code>end_time = 24</code> is interpreted as <code>end_time = &#39;23:59:59&#39;</code>, while a value of <code>_time = 0</code> is interpreted as <code>00:00:00</code>. The following further illustrate the variety of acceptable formats,</p>
+<pre class="r"><code>args1 &lt;- list (start_date = &#39;2016 May&#39;, end_time = &#39;12:39&#39;, weekday = 2:6)
+args1 &lt;- list (end_date = 20160720, end_time = 123915, weekday = c (&#39;mo&#39;, &#39;we&#39;))
+args1 &lt;- list (end_date = &#39;2016-07-20&#39;, end_time = &#39;12:39:15&#39;, weekday = 2:6)</code></pre>
 <p>Both <code>_date</code> and <code>_time</code> arguments may be specified in either <code>character</code> or <code>numeric</code> forms; in the former case with arbitrary (or no) separators. Regardless of format, larger units must precede smaller units as explained above.</p>
-<p>Weekdays may specified as characters, which must simply be unambiguous and (in admission of currently inadequate internationalisation) correspond to standard English names. Minimal character specifications are thus <code>'so', 'm', 'tu', 'w', 'th', 'f', 'sa'</code>. The value of <code>weekday = 1</code> denotes Sunday, so <code>weekdays = 2:6</code> denote the traditional working days, Monday to Friday, while weekends may be denoted with <code>weekdays = c ('sa', 'so')</code> or <code>weekdays = c (1, 7)</code>.</p>
+<p>Weekdays may specified as characters, which must simply be unambiguous and (in admission of currently inadequate internationalisation) correspond to standard English names. Minimal character specifications are thus <code>&#39;so&#39;, &#39;m&#39;, &#39;tu&#39;, &#39;w&#39;, &#39;th&#39;, &#39;f&#39;, &#39;sa&#39;</code>. The value of <code>weekday = 1</code> denotes Sunday, so <code>weekdays = 2:6</code> denote the traditional working days, Monday to Friday, while weekends may be denoted with <code>weekdays = c (&#39;sa&#39;, &#39;so&#39;)</code> or <code>weekdays = c (1, 7)</code>.</p>
 </div>
 <div id="demographic-filtering-of-trip-matrices" class="section level4">
 <h4>5.1.2. Demographic filtering of trip matrices</h4>
@@ -1784,16 +1784,16 @@ args1 &lt;- list (end_date = '2016-07-20', end_time = '12:39:15', weekday = 2:6)
 ## 11   sf      Bay Area       FordGoBike             TRUE</code></pre>
 <p>Data can then be filtered by demographic parameters with additional optional arguments to <code>bike_tripmat()</code> of,</p>
 <ol style="list-style-type: decimal">
-<li><code>registered</code> (<code>TRUE/FALSE</code>, <code>'yes'/'no'</code>, 0/1)</li>
+<li><code>registered</code> (<code>TRUE/FALSE</code>, <code>&#39;yes&#39;/&#39;no&#39;</code>, 0/1)</li>
 <li><code>birth_year</code> (as one or more four-digit numbers or character strings)</li>
 <li><code>gender</code> (‘m/f/.’, ‘male/female/other’)</li>
 </ol>
 <p>Users are not required to specify genders, and any values of <code>gender</code> other than character strings beginning with either <code>f</code> or <code>m</code> (case-insensitive) will be interpreted to request non-specified or alternative values of gender. Note further than many systems offer a range of potential birth years starting from a default value of 1900, and there are consequently a significant number of cyclists who declare this as their birth year.</p>
 <p>It is of course possible to combine all of these optional parameters in a single query. For example,</p>
-<pre class="r"><code>tm &lt;- bike_tripmat (bikedb = bikedb, city = 'ny', start_date = 2016,
-        start_time = 9, end_time = 24, weekday = 2:6, gender = 'xx', 
+<pre class="r"><code>tm &lt;- bike_tripmat (bikedb = bikedb, city = &#39;ny&#39;, start_date = 2016,
+        start_time = 9, end_time = 24, weekday = 2:6, gender = &#39;xx&#39;, 
         birth_year = 1900:1950)</code></pre>
-<p>The value of <code>gender = 'xx'</code> will be interpreted to request data from all members with nominal alternative genders. As demographic data are only given for registered users, the <code>registered</code> parameter is redundant in this query.</p>
+<p>The value of <code>gender = &#39;xx&#39;</code> will be interpreted to request data from all members with nominal alternative genders. As demographic data are only given for registered users, the <code>registered</code> parameter is redundant in this query.</p>
 </div>
 <div id="standardising-trip-matrices-by-durations-of-operation" class="section level4">
 <h4>5.1.3. Standardising trip matrices by durations of operation</h4>
@@ -1825,7 +1825,7 @@ args1 &lt;- list (end_date = '2016-07-20', end_time = '12:39:15', weekday = 2:6)
 ## 10    10 la    la3016 &quot;&quot;         34.0    -118.
 ## # ... with 650 more rows</code></pre>
 <p>This function returns a <a href="https://cran.r-project.org/package=tibble"><code>tibble</code></a> detailing the names and locations of all bicycle stations present in the database. Station data for specific cities may be extracted through specifying an additional <code>city</code> argument.</p>
-<pre class="r"><code>bike_stations (bikedb = bikedb, city = 'ch')</code></pre>
+<pre class="r"><code>bike_stations (bikedb = bikedb, city = &#39;ch&#39;)</code></pre>
 <pre><code>## # A tibble: 596 x 6
 ##       id city  stn_id name                          longitude latitude
 ##    &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;                             &lt;dbl&gt;    &lt;dbl&gt;
@@ -1846,11 +1846,11 @@ args1 &lt;- list (end_date = '2016-07-20', end_time = '12:39:15', weekday = 2:6)
 <p><code>bikedata</code> provides a number of helper functions for extracting summary statistics from the <code>SQLite3</code> database. The function <code>bike_summary_stats (bikedb)</code> generates an overview table. (This function may take some time to execute on large databases.)</p>
 <pre class="r"><code>bike_summary_stats (bikedb)</code></pre>
 <pre><code>## # A tibble: 3 x 6
-##   city  num_trips num_stations first_trip          last_trip  latest_files
-##   &lt;chr&gt;     &lt;dbl&gt;        &lt;dbl&gt; &lt;fct&gt;               &lt;fct&gt;      &lt;lgl&gt;       
-## 1 total   3693521          662 2016-01-01 00:07:00 2016-12-3… NA          
-## 2 ch      3595383          596 2016-01-01 00:07:00 2016-12-3… TRUE        
-## 3 la        98138           66 2016-07-07 04:17:00 2016-12-3… TRUE</code></pre>
+##   city  num_trips num_stations first_trip      last_trip      latest_files
+##   &lt;chr&gt;     &lt;dbl&gt;        &lt;dbl&gt; &lt;fct&gt;           &lt;fct&gt;          &lt;lgl&gt;       
+## 1 total   3693521          662 2016-01-01 00:… 2016-12-31 23… NA          
+## 2 ch      3595383          596 2016-01-01 00:… 2016-12-31 23… TRUE        
+## 3 la        98138           66 2016-07-07 04:… 2016-12-31 23… TRUE</code></pre>
 <p>Additional helper functions provide individual components from this summary data, and will generally do so notably faster for large databases than the above function. The primary individual function is <code>bike_db_totals()</code>, which can be used to extract total numbers of either trips (the default) or stations (by specifying <code>trips = FALSE</code>) from the entire database or from specific cities.</p>
 <pre class="r"><code>bike_db_totals (bikedb = bikedb)</code></pre>
 <pre><code>## [1] 3693521</code></pre>
@@ -1868,20 +1868,20 @@ args1 &lt;- list (end_date = '2016-07-20', end_time = '12:39:15', weekday = 2:6)
 <pre class="r"><code>bike_datelimits (bikedb = bikedb)</code></pre>
 <pre><code>##                 first                  last 
 ## &quot;2016-01-01 00:07:00&quot; &quot;2016-12-31 23:57:52&quot;</code></pre>
-<pre class="r"><code>bike_datelimits (bikedb = bikedb, city = 'ch')</code></pre>
-<pre class="r"><code>c ('first' = &quot;2016-01-01 00:07:00&quot;, 'last' = &quot;2016-12-31 23:57:52&quot;)</code></pre>
+<pre class="r"><code>bike_datelimits (bikedb = bikedb, city = &#39;ch&#39;)</code></pre>
+<pre class="r"><code>c (&#39;first&#39; = &quot;2016-01-01 00:07:00&quot;, &#39;last&#39; = &quot;2016-12-31 23:57:52&quot;)</code></pre>
 <pre><code>##                 first                  last 
 ## &quot;2016-01-01 00:07:00&quot; &quot;2016-12-31 23:57:52&quot;</code></pre>
 <p>A helper function is also provided to determine whether the files stored in the database represent the latest available files.</p>
 <pre class="r"><code>bike_latest_files (bikedb = bikedb)</code></pre>
-<pre class="r"><code>c ('la' = TRUE, 'ch' = FALSE)</code></pre>
+<pre class="r"><code>c (&#39;la&#39; = TRUE, &#39;ch&#39; = FALSE)</code></pre>
 <pre><code>##    la    ch 
 ##  TRUE FALSE</code></pre>
 </div>
 <div id="time-series-of-daily-trips" class="section level3">
 <h3>5.4. Time Series of Daily Trips</h3>
 <p>The <code>bike_tripmat()</code> function provides a <em>spatial</em> aggregation of data. An equivalent <em>temporal</em> aggregation is provided by the function <code>bike_daily_trips()</code>, which aggregates trips for individual days.</p>
-<pre class="r"><code>bike_daily_trips (bikedb = bikedb, city = 'ch')</code></pre>
+<pre class="r"><code>bike_daily_trips (bikedb = bikedb, city = &#39;ch&#39;)</code></pre>
 <pre><code>## # A tibble: 366 x 2
 ##    date       numtrips
 ##    &lt;chr&gt;         &lt;dbl&gt;
@@ -1897,7 +1897,7 @@ args1 &lt;- list (end_date = '2016-07-20', end_time = '12:39:15', weekday = 2:6)
 ## 10 2016-01-10      993
 ## # ... with 356 more rows</code></pre>
 <p>Daily trip counts can also be standardised to account for differences in numbers of stations within a system as for trip matrix standardisation described above. Such standardisation is helpful because daily numbers of trips will generally increase with increasing numbers of stations. Standardisation returns a time series of daily trips reflecting what they would be if all system stations had been in operation throughout the entire time.</p>
-<pre class="r"><code>bike_daily_trips (bikedb = bikedb, city = 'ch', standardise = TRUE)</code></pre>
+<pre class="r"><code>bike_daily_trips (bikedb = bikedb, city = &#39;ch&#39;, standardise = TRUE)</code></pre>
 <pre><code>## # A tibble: 366 x 2
 ##    date       numtrips
 ##    &lt;chr&gt;         &lt;dbl&gt;
@@ -1927,7 +1927,7 @@ args1 &lt;- list (end_date = '2016-07-20', end_time = '12:39:15', weekday = 2:6)
 dplyr::src_tbls (db)</code></pre>
 <pre class="r"><code>c (&quot;datafiles&quot;, &quot;stations&quot;, &quot;trips&quot;)</code></pre>
 <pre><code>## [1] &quot;datafiles&quot; &quot;stations&quot;  &quot;trips&quot;</code></pre>
-<pre class="r"><code>dplyr::collect (dplyr::tbl (db, 'datafiles'))</code></pre>
+<pre class="r"><code>dplyr::collect (dplyr::tbl (db, &#39;datafiles&#39;))</code></pre>
 <pre><code>## # A tibble: 5 x 3
 ##      id city  name                            
 ##   &lt;int&gt; &lt;chr&gt; &lt;chr&gt;                           
@@ -1936,7 +1936,7 @@ dplyr::src_tbls (db)</code></pre>
 ## 3     2 la    Metro_trips_Q4_2016.zip         
 ## 4     3 ch    Divvy_Trips_2016_Q1Q2.zip       
 ## 5     4 ch    Divvy_Trips_2016_Q3Q4.zip</code></pre>
-<pre class="r"><code>dplyr::collect (dplyr::tbl (db, 'stations'))</code></pre>
+<pre class="r"><code>dplyr::collect (dplyr::tbl (db, &#39;stations&#39;))</code></pre>
 <pre><code>## # A tibble: 660 x 6
 ##       id city  stn_id name  longitude latitude
 ##    &lt;int&gt; &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;     &lt;dbl&gt;    &lt;dbl&gt;
@@ -1951,26 +1951,26 @@ dplyr::src_tbls (db)</code></pre>
 ##  9     9 la    la3014 &quot;&quot;         34.1    -118.
 ## 10    10 la    la3016 &quot;&quot;         34.0    -118.
 ## # ... with 650 more rows</code></pre>
-<pre class="r"><code>dplyr::collect (dplyr::tbl (db, 'trips'))</code></pre>
+<pre class="r"><code>dplyr::collect (dplyr::tbl (db, &#39;trips&#39;))</code></pre>
 <pre><code>## # A tibble: 3,693,511 x 11
-##       id city  trip_duration start_time     stop_time     start_station_id
-##    &lt;int&gt; &lt;chr&gt;         &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt;         &lt;chr&gt;           
-##  1     1 la              180 2016-01-01 00… 2017-01-01 0… a               
-##  2     2 la             1980 2016-01-01 00… 2017-01-01 0… a               
-##  3     3 la              300 2016-01-01 00… 2017-01-01 0… a               
-##  4     4 la            10860 2016-01-01 00… 2017-01-01 0… a               
-##  5     5 la              420 2016-01-01 00… 2017-01-01 0… a               
-##  6     6 la              780 2016-01-01 00… 2017-01-01 0… a               
-##  7     7 la              600 2016-01-01 00… 2017-01-01 0… a               
-##  8     8 la              600 2016-01-01 00… 2017-01-01 0… a               
-##  9     9 la             2880 2016-01-01 00… 2017-01-01 0… a               
-## 10    10 la              960 2016-01-01 01… 2017-01-01 0… a               
+##       id city  trip_duration start_time stop_time start_station_id
+##    &lt;int&gt; &lt;chr&gt;         &lt;dbl&gt; &lt;chr&gt;      &lt;chr&gt;     &lt;chr&gt;           
+##  1     1 la              180 2016-01-0… 2017-01-… a               
+##  2     2 la             1980 2016-01-0… 2017-01-… a               
+##  3     3 la              300 2016-01-0… 2017-01-… a               
+##  4     4 la            10860 2016-01-0… 2017-01-… a               
+##  5     5 la              420 2016-01-0… 2017-01-… a               
+##  6     6 la              780 2016-01-0… 2017-01-… a               
+##  7     7 la              600 2016-01-0… 2017-01-… a               
+##  8     8 la              600 2016-01-0… 2017-01-… a               
+##  9     9 la             2880 2016-01-0… 2017-01-… a               
+## 10    10 la              960 2016-01-0… 2017-01-… a               
 ## # ... with 3,693,501 more rows, and 5 more variables:
 ## #   end_station_id &lt;chr&gt;, bike_id &lt;chr&gt;, user_type &lt;chr&gt;,
 ## #   birth_year &lt;int&gt;, gender &lt;int&gt;</code></pre>
 <p>The <a href="https://cran.r-project.org/package=RSQLite"><code>RSQLite</code></a> package enables more complex queries to be constructed. The names of stations, for example, could be extracted using the following code</p>
 <pre class="r"><code>db &lt;- RSQLite::dbConnect(RSQLite::SQLite(), bikedb, create = FALSE)
-qry &lt;- &quot;SELECT stn_id, name FROM stations WHERE city = 'ch'&quot;
+qry &lt;- &quot;SELECT stn_id, name FROM stations WHERE city = &#39;ch&#39;&quot;
 stns &lt;- RSQLite::dbGetQuery(db, qry)
 RSQLite::dbDisconnect(db)
 head (stns)</code></pre>
@@ -1989,8 +1989,8 @@ head (stns)</code></pre>
 <div id="visualisation-using-r-base-functions" class="section level3">
 <h3>7.1 Visualisation using R Base functions</h3>
 <p>The simplest spatial visualisation involves connecting the geographical coordinates of stations with straight lines, with numbers of trips represented by some characteristics of the lines connecting pairs of stations, such as thickness or colours. This can be achieved with the following code, which also illustrates that it is generally more useful for visualisation purposes to extract trip matrices in long rather than square form.</p>
-<pre class="r"><code>stns &lt;- bike_stations (bikedb = bikedb, city = 'la')
-ntrips &lt;- bike_tripmat (bikedb = bikedb, city = 'la', long = TRUE)
+<pre class="r"><code>stns &lt;- bike_stations (bikedb = bikedb, city = &#39;la&#39;)
+ntrips &lt;- bike_tripmat (bikedb = bikedb, city = &#39;la&#39;, long = TRUE)
 x1 &lt;- stns$longitude [match (ntrips$start_station_id, stns$stn_id)]
 y1 &lt;- stns$latitude [match (ntrips$start_station_id, stns$stn_id)]
 x2 &lt;- stns$longitude [match (ntrips$end_station_id, stns$stn_id)]
@@ -2020,11 +2020,11 @@ bbox &lt;- c (xlims_la [1], ylims_la [1], xlims_la [2], ylims_la [2])
 bbox &lt;- c (xlims [1], xlims [2], ylims [1], ylims [2])
 # Then the actual osmdata query to extract all OpenStreetMap highways
 highways &lt;- osmdata::opq (bbox = bbox) %&gt;%
-    osmdata::add_osm_feature (key = 'highway') %&gt;%
+    osmdata::add_osm_feature (key = &#39;highway&#39;) %&gt;%
     osmdata::osmdata_sp (quiet = FALSE)</code></pre>
 <p>For compatibility with current <code>stplanr</code> code, the <code>stns</code> table also needs to be converted to a <code>SpatialPointsDataFrame</code> and re-projected.</p>
 <pre class="r"><code>stns_tbl &lt;- bike_stations (bikedb = bikedb)
-stns &lt;- sp::SpatialPointsDataFrame (coords = stns_tbl[,c('longitude','latitude')],
+stns &lt;- sp::SpatialPointsDataFrame (coords = stns_tbl[,c(&#39;longitude&#39;,&#39;latitude&#39;)],
                                     proj4string = sp::CRS(&quot;+init=epsg:4326&quot;), 
                                     data = stns_tbl)
 stns &lt;- sp::spTransform (stns, highways$osm_lines@proj4string)</code></pre>

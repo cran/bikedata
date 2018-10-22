@@ -80,10 +80,15 @@ test_that ('dl_bikedata boston', {
                                 error = function (e) NULL)
                          })
 
+testthat::skip_on_cran ()
+
 test_that ('dl_bikedata la', {
-               files <- c ("MetroBikeShare_2016_Q3_trips.zip",
-                           "Metro_trips_Q4_2016.zip")
-               files <- file.path (tempdir (), files)
+               # These files change names, so this test first GETs the names of
+               # current files
+               dl_files <- get_bike_files (city = "la")
+               dates <- "2016"
+               indx <- grep (dates, basename (dl_files))
+               files <- file.path (tempdir (), basename (dl_files [indx]))
                for (f in files) write ('a', file = f)
                expect_message (dl_bikedata (city = 'la',
                                             data_dir = tempdir (),
