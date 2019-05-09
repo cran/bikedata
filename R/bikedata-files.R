@@ -109,11 +109,16 @@ get_nabsa_files <- function (city)
     hrefs <- xml2::xml_attr (xml2::xml_find_all (doc, ".//a"), "href")
     hrefs <- hrefs [which (grepl ("\\.zip", hrefs) &
                            !grepl ("[Ss]tation", hrefs))]
+
     if (city == 'la')
+    {
         the_url_sh <- "https://bikeshare.metro.net/"
-    as.character (vapply (hrefs, function (i)
-                          gsub ("../../", the_url_sh, i, fixed = TRUE),
-                          "character"))
+        hrefs <- as.character (vapply (hrefs, function (i)
+                                       gsub ("../../", the_url_sh, i, fixed = TRUE),
+                                       "character"))
+    }
+
+    return (hrefs)
 }
 
 
@@ -189,7 +194,7 @@ get_bike_files <- function (city)
         files <- get_london_bike_files ()
     else if (city == 'mn')
         warning ('Data for the Nice Ride MN system must be downloaded ',
-                 'manually from\nhttps://www.niceridemn.org/data/, and ',
+                 'manually from\nhttps://www.niceridemn.com/system-data/, and ',
                  'loaded using store_bikedata')
     else if (city == 'mo')
         files <- get_montreal_bike_files ()

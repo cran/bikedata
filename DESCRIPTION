@@ -1,6 +1,6 @@
 Package: bikedata
 Title: Download and Aggregate Data from Public Hire Bicycle Systems
-Version: 0.2.2
+Version: 0.2.3
 Authors@R: c(
     person("Mark", "Padgham", email = "mark.padgham@email.com",
         role = c("aut", "cre"),
@@ -15,9 +15,11 @@ Authors@R: c(
         comment = "Authors of included SQLite code"))
 Description: Download and aggregate data from all public hire bicycle systems
     which provide open data, currently including 'Santander' Cycles in London,
-    U.K., and from the U.S.A., 'citibike' in New York City NY, 'Divvy' in
-    Chicago IL, 'Capital Bikeshare' in Washington DC, 'Hubway' in Boston MA, 
-    'Metro' in Los Angeles LA, and 'Indego' in Philadelphia PA.
+    U.K.; from the U.S.A., 'Ford GoBike' in San Francisco CA, 'citibike' in New
+    York City NY, 'Divvy' in Chicago IL, 'Capital Bikeshare' in Washington DC,
+    'Hubway' in Boston MA, 'Metro' in Los Angeles LA, 'Indego' in Philadelphia
+    PA, and 'Nice Ride' in Minnesota; 'Bixi' from Montreal, Canada; and 'mibici'
+    from Guadalajara, Mexico.
 License: GPL-3
 Depends: R (>= 3.0)
 Imports: DBI, dodgr, httr, lubridate, magrittr, methods, Rcpp, readxl,
@@ -31,12 +33,12 @@ URL: https://github.com/ropensci/bikedata
 BugReports: https://github.com/ropensci/bikedata/issues
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 X-schema.org-applicationCategory: Data Access
 X-schema.org-keywords: bicycle-hire-systems, bike-hire-systems,
         bike-hire, bicycle-hire, database, bike-data
 X-schema.org-isPartOf: https://ropensci.org
-Packaged: 2018-10-05 08:41:55 UTC; markus
+Packaged: 2019-05-09 08:50:45 UTC; markus
 Author: Mark Padgham [aut, cre] (<https://orcid.org/0000-0003-2172-5265>),
   Richard Ellison [aut],
   Tom Buckley [aut],
@@ -47,4 +49,4 @@ Author: Mark Padgham [aut, cre] (<https://orcid.org/0000-0003-2172-5265>),
   SQLite Consortium [ctb] (Authors of included SQLite code)
 Maintainer: Mark Padgham <mark.padgham@email.com>
 Repository: CRAN
-Date/Publication: 2018-10-22 11:50:03 UTC
+Date/Publication: 2019-05-09 09:30:07 UTC

@@ -10,6 +10,7 @@ Active](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostat
 [![CRAN
 Downloads](https://cranlogs.r-pkg.org/badges/grand-total/bikedata?color=orange)](https://cran.r-project.org/package=bikedata)
 [![](http://badges.ropensci.org/116_status.svg)](https://github.com/ropensci/onboarding/issues/116)
+[![status](http://joss.theoj.org/papers/232cd77b73dbef4accd36ddfb20f96ae/status.svg)](http://joss.theoj.org/papers/232cd77b73dbef4accd36ddfb20f96ae)
 
 The `bikedata` package aims to enable ready importing of historical trip
 data from all public bicycle hire systems which provide data, and will
@@ -28,7 +29,7 @@ are
 | Montreal, Canada               | [Bixi](https://montreal.bixi.com/)                                    | 5,220              | 452                        |
 | Washingon DC, U.S.A.           | [Capital BikeShare](https://www.capitalbikeshare.com/)                | 4,457              | 406                        |
 | Guadalajara, Mexico            | [mibici](https://www.mibici.net/)                                     | 2,116              | 242                        |
-| Minneapolis/St Paul MN, U.S.A. | [Nice Ride](https://www.niceridemn.org/)                              | 1,833              | 171                        |
+| Minneapolis/St Paul MN, U.S.A. | [Nice Ride](https://www.niceridemn.com/)                              | 1,833              | 171                        |
 | Boston MA, U.S.A.              | [Hubway](https://www.thehubway.com/)                                  | 1,461              | 158                        |
 | Philadelphia PA, U.S.A.        | [Indego](https://www.rideindego.com)                                  | 1,000              | 105                        |
 | Los Angeles CA, U.S.A.         | [Metro](https://bikeshare.metro.net/)                                 | 1,000              | 65                         |
@@ -204,7 +205,7 @@ citation ("bikedata")
 ### 4. Code of Conduct
 
 Please note that this project is released with a [Contributor Code of
-Conduct](CONDUCT.md). By participating in this project you agree to
-abide by its terms.
+Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree
+to abide by its terms.
 
 [![ropensci\_footer](http://ropensci.org/public_images/github_footer.png)](http://ropensci.org)
