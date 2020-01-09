@@ -102,7 +102,7 @@ bike_get_chicago_stations <- function (flists)
     id <- name <- lon <- lat <- NULL
     for (f in flists$flist_csv_stns)
     {
-        fi <- read.csv (f, header = TRUE)
+        fi <- utils::read.csv (f, header = TRUE)
         id <- c (id, paste0 (fi$id))
         name <- c (name, paste0 (fi$name))
         lon <- c (lon, paste0 (fi$longitude))
@@ -158,9 +158,15 @@ bike_get_bo_stations <- function (flists, data_dir)
     id <- name <- lon <- lat <- NULL
     for (f in flists$flist_csv_stns)
     {
-        fi <- read.csv (f, header = TRUE)
-        id <- c (id, paste0 (fi$Station.ID))
-        name <- c (name, paste0 (fi$Station))
+        f <- flists$flist_csv_stns [2]
+        fi <- utils::read.csv (f, header = TRUE)
+        if ("Station.ID" %in% names (fi)) {
+            id <- c (id, paste0 (fi$Station.ID))
+            name <- c (name, paste0 (fi$Station))
+        } else {
+            id <- c (id, paste0 (fi$Number))
+            name <- c (name, paste0 (fi$Name))
+        }
         lon <- c (lon, paste0 (fi$Longitude))
         lat <- c (lat, paste0 (fi$Latitude))
     }
@@ -187,7 +193,7 @@ bike_get_mn_stations <- function (flists)
     id <- name <- lon <- lat <- NULL
     for (f in flists$flist_csv_stns)
     {
-        fi <- read.csv (f, header = TRUE)
+        fi <- utils::read.csv (f, header = TRUE)
         idcol <- grep ("terminal|number", names (fi), ignore.case = TRUE)
         nmcol <- grep ("station|name", names (fi), ignore.case = TRUE)
         loncol <- grep ("lon", names (fi), ignore.case = TRUE)
@@ -222,7 +228,7 @@ bike_get_mo_stations <- function (flists)
     id <- name <- lon <- lat <- NULL
     for (f in flists$flist_csv_stns)
     {
-        fi <- read.csv (f, header = TRUE)
+        fi <- utils::read.csv (f, header = TRUE)
         idcol <- grep ("code", names (fi), ignore.case = TRUE)
         nmcol <- grep ("name", names (fi), ignore.case = TRUE)
         loncol <- grep ("longitude", names (fi), ignore.case = TRUE)
@@ -289,6 +295,8 @@ bike_get_gu_stations <- function ()
         xml2::xml_attr ("href")
     link <- paste0 ("https://www.mibici.net",
                     hrefs [grep ("nomenclatura", hrefs, ignore.case = TRUE)])
+    if (length (link) > 1)
+        link <- link [length (link)] # latest version
 
     suppressMessages (
                       dat <- httr::GET (link) %>%
@@ -302,6 +310,7 @@ bike_get_gu_stations <- function ()
                        lon = dat$longitude, lat = dat$latitude,
                        stringsAsFactors = FALSE)
     res <- res [which (!duplicated (res)), ]
+    res <- res [which (!res$id == "NULL"), ]
 
     return (res)
 }
